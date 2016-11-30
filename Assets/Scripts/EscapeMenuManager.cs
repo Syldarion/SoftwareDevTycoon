@@ -9,9 +9,14 @@ public class EscapeMenuManager : MonoBehaviour
 
     private bool open;
 
-    void Start()
+    void Awake()
     {
         open = false;
+    }
+
+    void Start()
+    {
+
     }
 
     void Update()
