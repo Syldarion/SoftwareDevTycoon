@@ -100,7 +100,7 @@ public class NewCharacterCreator : MonoBehaviour
             Exhaustion = 0
         };
 
-        new_character.AdjustMoney(20000);
+        new_character.AdjustMoney(5000);
 
         for (int i = 0; i < SkillAllocators.Count; i++)
             new_character.Skills[i].Level = SkillAllocators[i].CurrentSkillLevel;
