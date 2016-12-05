@@ -2,11 +2,13 @@
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 
 public class InGameMenuManager : MonoBehaviour
 {
     public CanvasGroup MenuOptionsPanel;
 
+    private InputField saveNameField;
     private bool open;
 
     void Awake()
@@ -34,9 +36,9 @@ public class InGameMenuManager : MonoBehaviour
             UIUtilities.DeactivateCanvasGroup(MenuOptionsPanel);
     }
 
-    public void ToggleButtons(Button toggleButton)
+    public void ToggleButtons(RectTransform mainSibling)
     {
-        Button[] sibling_buttons = UIUtilities.GetSiblingsOfType<Button>(toggleButton.gameObject);
+        Button[] sibling_buttons = UIUtilities.GetSiblingsOfType<Button>(mainSibling.gameObject);
         if (sibling_buttons == null || sibling_buttons.Length == 0)
             return;
         bool is_active = sibling_buttons[0].gameObject.activeSelf;
@@ -44,8 +46,21 @@ public class InGameMenuManager : MonoBehaviour
             sibling.gameObject.SetActive(!is_active);
     }
 
-    public void OpenContractManager()
+    public void TrySaveGame()
     {
-        ContractManager.Instance.OpenContractForm();
+        DialogueBox.Instance.CreateNewDialogue("Save Game");
+        saveNameField = DialogueBox.Instance.AddInputField("Enter save name...");
+        DialogueBox.Instance.AddButton("Save", SaveGame);
+    }
+
+    private void SaveGame()
+    {
+        SaveManager.Instance.SaveGame(saveNameField.text);
+        DialogueBox.Instance.Cleanup();
+    }
+
+    public void ExitGame()
+    {
+        SceneManager.LoadScene("main_menu");
     }
 }

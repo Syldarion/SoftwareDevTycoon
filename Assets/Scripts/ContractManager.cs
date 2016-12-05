@@ -44,11 +44,14 @@ public class ContractManager : Singleton<ContractManager>
             else
                 CloseContractForm();
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && open)
+            CloseContractForm();
     }
 
     public void OpenContractForm()
     {
-        if (locked) return;
+        if (locked || open) return;
 
         open = true;
 
@@ -116,6 +119,14 @@ public class ContractManager : Singleton<ContractManager>
 
         ActiveContract.WorkContract();
         UpdateActiveContractInfo();
+    }
+
+    public void CancelActiveContract()
+    {
+        if (ActiveContract == null) return;
+
+        ActiveContract.CancelContract();
+        SetActiveContract(null);
     }
 
     public void UpdateActiveContractInfo()

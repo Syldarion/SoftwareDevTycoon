@@ -108,6 +108,9 @@ public class ScheduleManager : Singleton<ScheduleManager>
             else
                 OpenSchedulePlanner();
         }
+
+        if(Input.GetKeyDown(KeyCode.Escape) && open)
+            CloseSchedulePlanner();
     }
 
     public void SetupSchedulePlanner()
@@ -125,8 +128,10 @@ public class ScheduleManager : Singleton<ScheduleManager>
         }  
     }
 
-    void OpenSchedulePlanner()
+    public void OpenSchedulePlanner()
     {
+        if (open) return;
+
         open = true;
 
         TimeManager.Pause();
@@ -135,8 +140,10 @@ public class ScheduleManager : Singleton<ScheduleManager>
         UIUtilities.ActivateCanvasGroup(SchedulePanel);
     }
 
-    void CloseSchedulePlanner()
+    public void CloseSchedulePlanner()
     {
+        if (!open) return;
+
         open = false;
 
         UIUtilities.DeactivateCanvasGroup(SchedulePanel);

@@ -94,18 +94,25 @@ public class JobManager : Singleton<JobManager>
                     Job.MyJob.CurrentTitle.Name,
                     Job.MyJob.Performance));
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && open)
+        {
+            if(Job.MyJob == null)
+                CloseJobSearch();
+            else
+                CloseJobInfo();
+        }
     }
 
     public void UpdateJobInfo()
     {
-        if (Job.MyJob != null)
-        {
-            
-        }
+        if (Job.MyJob == null) return;
     }
 
     public void OpenJobSearch()
     {
+        if (open || Job.MyJob != null) return;
+
         open = true;
 
         TimeManager.Pause();
@@ -185,6 +192,8 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobSearch()
     {
+        if (!open) return;
+
         open = false;
         UIUtilities.DeactivateCanvasGroup(JobSearchPanel);
 
@@ -194,7 +203,7 @@ public class JobManager : Singleton<JobManager>
 
     public void OpenJobInfo()
     {
-        if (Job.MyJob == null) return;
+        if (open || Job.MyJob == null) return;
 
         TimeManager.Pause();
         TimeManager.Lock();
@@ -210,6 +219,8 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobInfo()
     {
+        if (!open) return;
+
         open = false;
         UIUtilities.DeactivateCanvasGroup(JobInfoPanel);
 
