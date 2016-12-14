@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 [Serializable]
 public class Office
 {
+    public const int MIN_OFFICE_SPACE = 50;
     public const int MAX_OFFICE_SPACE = 200;
     public const int COST_PER_SPACE = 100;
 
@@ -30,7 +31,7 @@ public class Office
     
     public Office(int officeSpace)
     {
-        space = officeSpace;
+        space = Mathf.Clamp(officeSpace, MIN_OFFICE_SPACE, MAX_OFFICE_SPACE);
     }
 
     public void SetupEvents()
@@ -88,6 +89,20 @@ public class OfficeBuilding
     public virtual void ApplyBonus(Office office) { }
 
     //Getters / Setters
+}
+
+public class MainBuilding : OfficeBuilding
+{
+    public MainBuilding()
+        : base(10, 100)
+    {
+        
+    }
+
+    public override void ApplyBonus(Office office)
+    {
+        
+    }
 }
 
 [Serializable]

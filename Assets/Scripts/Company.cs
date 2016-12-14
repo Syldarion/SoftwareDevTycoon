@@ -56,6 +56,8 @@ public class Company
 {
     public static Company MyCompany;
 
+    public const int BASE_COMPANY_COST = 500000;
+
     //Properties
     public int TeamSize { get { return employees.Count; } }
     
@@ -78,6 +80,24 @@ public class Company
         employees = new List<Employee>();
     }
 
+    public static Company CreateNewCompany(string name, int initSpace)
+    {
+        if (MyCompany != null) return MyCompany;
+
+        Company new_company = new Company(name);
+
+        Office init_office = new Office(initSpace);
+        init_office.AddOfficeBuilding(new MainBuilding());
+
+        new_company.AddOffice(init_office);
+
+        int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * initSpace);
+
+        Character.MyCharacter.AdjustMoney(-new_company_cost);
+
+        return new_company;
+    }
+
     public void SetupEvents()
     {
         TimeManager.PerMonthEvent.RemoveListener(PayMonthlyCosts);
@@ -94,6 +114,13 @@ public class Company
     public void AdjustFunds(int adjustment)
     {
         funds += adjustment;
+
+        //check for bankruptcy and shit
+    }
+
+    public void DeclareBankruptcy()
+    {
+        //rekt
     }
 
     public void AdjustReputation(int adjustment)
@@ -101,14 +128,21 @@ public class Company
         reputation = Mathf.Clamp(reputation + adjustment, 0, 100);
     }
 
+    public void AddOffice(Office newOffice)
+    {
+        CompanyOffices.Add(newOffice);
+    }
+
     public void PayEmployees()
     {
         int total_payroll = employees.Aggregate(0, (current, emp) => current + emp.Pay);
+        AdjustFunds(-total_payroll);
     }
 
     public void PayForOffices()
     {
         int total_cost = CompanyOffices.Aggregate(0, (current, office) => current + office.TotalUpkeepCost);
+        AdjustFunds(-total_cost);
     }
 
     public void HireEmployee(Employee employee)
