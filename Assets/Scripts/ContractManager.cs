@@ -28,6 +28,7 @@ public class ContractManager : Singleton<ContractManager>
     void Awake()
     {
         Instance = this;
+        open = false;
         locked = false;
     }
 
@@ -51,12 +52,9 @@ public class ContractManager : Singleton<ContractManager>
 
     public void OpenContractForm()
     {
-        if (locked || open) return;
+        if (locked) return;
 
-        open = true;
-
-        TimeManager.Pause();
-        TimeManager.Lock();
+        UIUtilities.ActivateWithLock(ContractWorkPanel, ref open);
 
         foreach (Contract contract in Contract.GenerateContracts())
         {
@@ -65,16 +63,11 @@ public class ContractManager : Singleton<ContractManager>
             new_contract_object.PopulateContractInfo(contract);
             new_contract_object.transform.SetParent(ContractWorkPanel.transform, false);
         }
-
-        UIUtilities.ActivateCanvasGroup(ContractWorkPanel);
     }
 
     public void CloseContractForm()
     {
-        open = false;
-
-        TimeManager.Unlock();
-        TimeManager.Unpause();
+        UIUtilities.DeactivateWithLock(ContractWorkPanel, ref open);
 
         foreach(Transform child in ContractWorkPanel.transform)
             Destroy(child.gameObject);

@@ -15,6 +15,15 @@ public static class UIUtilities
         group.interactable = true;
     }
 
+    public static void ActivateWithLock(CanvasGroup group, ref bool openFlag)
+    {
+        if (openFlag) return;
+        TimeManager.Pause();
+        TimeManager.Lock();
+        ActivateCanvasGroup(group);
+        openFlag = true;
+    }
+
     public static void DeactivateCanvasGroup(CanvasGroup group)
     {
         if (group == null) return;
@@ -22,6 +31,15 @@ public static class UIUtilities
         group.alpha = 0;
         group.blocksRaycasts = false;
         group.interactable = false;
+    }
+
+    public static void DeactivateWithLock(CanvasGroup group, ref bool openFlag)
+    {
+        if (!openFlag) return;
+        DeactivateCanvasGroup(group);
+        TimeManager.Unlock();
+        TimeManager.Unpause();
+        openFlag = false;
     }
 
     public static T[] GetSiblingsOfType<T>(GameObject obj) where T : UIBehaviour

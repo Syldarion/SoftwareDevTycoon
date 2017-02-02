@@ -111,14 +111,9 @@ public class JobManager : Singleton<JobManager>
 
     public void OpenJobSearch()
     {
-        if (open || Job.MyJob != null) return;
-
-        open = true;
-
-        TimeManager.Pause();
-        TimeManager.Lock();
-
-        UIUtilities.ActivateCanvasGroup(JobSearchPanel);
+        if (Job.MyJob != null) return;
+        
+        UIUtilities.ActivateWithLock(JobSearchPanel, ref open);
         
         PopulateApplicationList();
         PopulateSearchList();
@@ -192,25 +187,14 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobSearch()
     {
-        if (!open) return;
-
-        open = false;
-        UIUtilities.DeactivateCanvasGroup(JobSearchPanel);
-
-        TimeManager.Unlock();
-        TimeManager.Unpause();
+        UIUtilities.DeactivateWithLock(JobSearchPanel, ref open);
     }
 
     public void OpenJobInfo()
     {
-        if (open || Job.MyJob == null) return;
+        if (Job.MyJob == null) return;
 
-        TimeManager.Pause();
-        TimeManager.Lock();
-
-        open = true;
-        TimeManager.Pause();
-        UIUtilities.ActivateCanvasGroup(JobInfoPanel);
+        UIUtilities.ActivateWithLock(JobInfoPanel, ref open);
 
         JobTitleText.text = Job.MyJob.CurrentTitle.Name;
         JobCompanyText.text = Job.MyJob.CompanyName;
@@ -219,13 +203,7 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobInfo()
     {
-        if (!open) return;
-
-        open = false;
-        UIUtilities.DeactivateCanvasGroup(JobInfoPanel);
-
-        TimeManager.Unlock();
-        TimeManager.Unpause();
+        UIUtilities.DeactivateWithLock(JobInfoPanel, ref open);
     }
 
     public void FilterSearchResults()

@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.EventSystems;
 
-public class ProgressBar : MonoBehaviour
+public class ProgressBar : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public Image Foreground;
     public Gradient BarGradient;
@@ -10,6 +11,7 @@ public class ProgressBar : MonoBehaviour
 
     private Vector2 maxSize;
     private float currentProgress;
+    private bool revealOnMouseOver;
 
     void Awake()
     {
@@ -34,9 +36,25 @@ public class ProgressBar : MonoBehaviour
         Foreground.color = BarGradient.Evaluate(currentProgress);
     }
 
-    public void SetBarText(string text)
+    public void SetBarText(string text, bool reveal)
     {
         BarText.text = text ?? "";
-        BarText.gameObject.SetActive(!string.IsNullOrEmpty(text));
+        revealOnMouseOver = reveal;
+        if (!reveal)
+            BarText.gameObject.SetActive(!string.IsNullOrEmpty(text));
+        else
+            BarText.gameObject.SetActive(false);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (revealOnMouseOver)
+            BarText.gameObject.SetActive(true);
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (revealOnMouseOver)
+            BarText.gameObject.SetActive(false);
     }
 }

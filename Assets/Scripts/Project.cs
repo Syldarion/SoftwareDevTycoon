@@ -8,7 +8,7 @@ public class ProjectTask
 {
     //Properties
     public bool Complete { get { return !WorkNeeded.Any(x => x > 0); } }
-    public bool OnTime { get { return DaysRemaining < 0; } }
+    public bool OnTime { get { return DaysRemaining >= 0; } }
     public float Progress { get { return (float)WorkNeeded.Sum() / TotalWorkNeeded; } }
 
     //Public fields
@@ -73,6 +73,7 @@ public class ProjectTask
         DaysRemaining--;
 
         //update task info UI
+        CompanyManager.Instance.UpdateCompanyInfoPanel();
         
         if (Complete)
         {

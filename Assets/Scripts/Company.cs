@@ -51,7 +51,7 @@ public class Employee : Person
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class Company
 {
     public static Company MyCompany;
@@ -131,12 +131,14 @@ public class Company
     public void AddOffice(Office newOffice)
     {
         CompanyOffices.Add(newOffice);
+        CompanyManager.Instance.UpdateCompanyInfoPanel();
     }
 
     public void PayEmployees()
     {
         int total_payroll = employees.Aggregate(0, (current, emp) => current + emp.Pay);
         AdjustFunds(-total_payroll);
+        AdjustReputation(1);
     }
 
     public void PayForOffices()
@@ -154,6 +156,8 @@ public class Company
         employee.HireDateBinary = TimeManager.CurrentDate.ToBinary();
 
         employees.Add(employee);
+
+        CompanyManager.Instance.UpdateCompanyInfoPanel();
     }
 
     public void FireEmployee(Employee employee)
@@ -165,13 +169,26 @@ public class Company
         int total_sev_pay = baseSeverancePay + Mathf.CeilToInt((job_length.Days / 356.0f) * (employee.Pay / 12.0f));
 
         AdjustFunds(-total_sev_pay);
+        AdjustReputation(-1);
 
         employees.Remove(employee);
+
+        CompanyManager.Instance.UpdateCompanyInfoPanel();
     }
 
     public void TrainEmployee(Employee employee)
     {
-        
+        int skill_sum = Mathf.Clamp(employee.Skills.Sum(x => x.Level), 1, int.MaxValue);
+        int training_cost = 500 * skill_sum;
+
+        AdjustFunds(-training_cost);
+
+        for (int i = 0; i < employee.Skills.Length; i++)
+        {
+            float skill_makeup_percentage = (float)employee.Skills[i].Level / skill_sum;
+            int amount_to_increase = Mathf.FloorToInt(10.0f * skill_makeup_percentage * Random.Range(0.5f, 2.0f)) + 1;
+            employee.Skills[i].Level += amount_to_increase;
+        }
     }
 
     //Getters / Setters
@@ -189,5 +206,10 @@ public class Company
     public int Funds()
     {
         return funds;
+    }
+
+    public IEnumerable<Employee> EmployeeList()
+    {
+        return employees;
     }
 }
