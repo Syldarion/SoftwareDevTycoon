@@ -110,7 +110,7 @@ public class Contract
     public static Contract[] GenerateContracts()
     {
         int team_size = Company.MyCompany == null ? 1 : Company.MyCompany.TeamSize;
-        int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation();
+        int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
         reputation = Mathf.Clamp(reputation, 0, 100);
 
         Contract[] generated_contracts = new Contract[3];

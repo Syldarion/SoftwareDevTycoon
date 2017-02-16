@@ -63,6 +63,9 @@ public class Company
     public const int BASE_COMPANY_COST = 500000;
 
     //Properties
+    public string Name { get { return name; } }
+    public int Reputation { get { return reputation; } }
+    public int Funds { get { return funds; } }
     public int TeamSize { get { return employees.Count; } }
     
     //Public Fields
@@ -196,21 +199,6 @@ public class Company
     }
 
     //Getters / Setters
-
-    public string Name()
-    {
-        return name;
-    }
-
-    public int Reputation()
-    {
-        return reputation;
-    }
-
-    public int Funds()
-    {
-        return funds;
-    }
 
     public IEnumerable<Employee> EmployeeList()
     {

@@ -54,8 +54,7 @@ public class CompanyManager : Singleton<CompanyManager>
     public Button EmployeeHireButton;
     public Button EmployeeFireButton;
     public Button EmployeeTrainButton;
-
-    private ProjectTask selectedTask;
+    
     private Office selectedOffice;
     private Employee selectedEmployee;
     private bool open;
@@ -63,7 +62,6 @@ public class CompanyManager : Singleton<CompanyManager>
     void Start()
     {
         Instance = this;
-        selectedTask = null;
         selectedOffice = null;
         selectedEmployee = null;
         open = false;
@@ -71,16 +69,20 @@ public class CompanyManager : Singleton<CompanyManager>
 
     void Update()
     {
-
+        if(Input.GetKeyDown(KeyCode.Escape) && open)
+        {
+            CloseNewCompanyPanel();
+            CloseCompanyOfficesPanel();
+            CloseCompanyEmployeesPanel();
+        }
     }
 
     public void UpdateCompanyInfoPanel()
     {
-        //call this whenever work is done on the company project
-        //or if office count or employee count changes
         if (Company.MyCompany == null)
             return;
-        
+
+        InfoCompanyName.text = Company.MyCompany.Name;
         InfoOfficeCount.text = Company.MyCompany.CompanyOffices.Count.ToString();
         InfoEmployeeCount.text = Company.MyCompany.TeamSize.ToString();
     }
@@ -90,16 +92,9 @@ public class CompanyManager : Singleton<CompanyManager>
         UIUtilities.ActivateWithLock(NewCompanyPanel, ref open);
     }
 
-    public void OpenCompanyProjectPanel()
+    public void CloseNewCompanyPanel()
     {
-        UIUtilities.ActivateWithLock(ProjectPanel, ref open);
-
-        ProjectName.text = Company.MyCompany.CompanyProject.Name;
-    }
-
-    public void CloseCompanyProjectPanel()
-    {
-        UIUtilities.DeactivateWithLock(ProjectPanel, ref open);
+        UIUtilities.DeactivateWithLock(NewCompanyPanel, ref open);
     }
 
     public void OpenCompanyOfficesPanel()
@@ -180,13 +175,16 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void UpdateNewCompanyCostText()
     {
-        int new_office_space = int.Parse(FirstOfficeSpaceInput.text);
+        int new_office_space;
+        if(!int.TryParse(FirstOfficeSpaceInput.text, out new_office_space)) new_office_space = 0;
+        new_office_space = Math.Abs(new_office_space);
+
         int total_cost = Company.BASE_COMPANY_COST + (Office.COST_PER_SPACE * new_office_space);
 
         NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
 
         CreateCompanyButton.onClick.RemoveListener(CreateCompany);
-        if(total_cost <= Character.MyCharacter.Money)
+        if(total_cost <= Character.MyCharacter.Money && total_cost != 0)
             CreateCompanyButton.onClick.AddListener(CreateCompany);
         CreateCompanyButton.colors =
             ColorBlocks.GetColorBlock(total_cost <= Character.MyCharacter.Money ? Color.green : Color.red);

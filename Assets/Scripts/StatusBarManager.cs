@@ -22,7 +22,7 @@ public class StatusBarManager : Singleton<StatusBarManager>
 
     public void UpdateFunds()
     {
-        int funds_value = Company.MyCompany == null ? Character.MyCharacter.Money : Company.MyCompany.Funds();
+        int funds_value = Company.MyCompany == null ? Character.MyCharacter.Money : Company.MyCompany.Funds;
         CurrentFundsText.text = funds_value.ToString("C");
         CurrentFundsText.color = funds_value < 0 ? Color.red : Color.black;
     }

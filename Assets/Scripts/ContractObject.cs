@@ -129,7 +129,7 @@ public class ContractObject : MonoBehaviour
         int proposed_days = DeadlineInput.text != string.Empty
                                 ? int.Parse(DeadlineInput.text)
                                 : ObjectContract.DaysToComplete;
-        int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation();
+        int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
 
         float new_pay_percentage = (float)proposed_pay / ObjectContract.Payment;
         float new_day_percentage = (float)proposed_days / ObjectContract.DaysToComplete;
