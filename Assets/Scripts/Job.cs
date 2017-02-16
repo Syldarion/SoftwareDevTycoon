@@ -88,7 +88,8 @@ public class Job
     public int Performance {get {return performance;} set { performance = Mathf.Clamp(value, 0, 100); } }
     private int performance;
 
-    [SerializeField] private bool isPayWeek;
+    [SerializeField]
+    private bool isPayWeek;
 
     public Job()
     {
@@ -130,9 +131,7 @@ public class Job
     {
         DayOfWeek current_day = TimeManager.CurrentDate.DayOfWeek;
 
-        int hours_worked_today =
-            ScheduleManager.Instance.ActiveSchedule.GetSchedule(current_day)
-                .Items.Count(x => x == ScheduleItem.Job);
+        int hours_worked_today = 8;
 
         Performance += hours_worked_today - (current_day == DayOfWeek.Saturday || current_day == DayOfWeek.Sunday ? 0 : 8);
     }

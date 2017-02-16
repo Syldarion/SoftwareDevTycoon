@@ -48,7 +48,7 @@ public class GameSave
 
     private void LoadContractInfo()
     {
-        ContractManager.Instance.SetActiveContract(activeContract);
+        Contract.SetActiveContract(activeContract);
     }
 
     private void LoadTimeInfo()
@@ -80,7 +80,7 @@ public class GameSave
     public void SaveGame()
     {
         myCharacter = Character.MyCharacter;
-        activeContract = ContractManager.Instance.ActiveContract;
+        activeContract = Contract.ActiveContract;
         dateString = TimeManager.DateString;
         activeApplications = JobManager.Instance.ActiveApplications.ToArray();
         myJob = Job.MyJob;

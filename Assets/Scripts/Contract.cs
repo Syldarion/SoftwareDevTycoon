@@ -5,10 +5,15 @@ using System.Linq;
 [System.Serializable]
 public class Contract
 {
-    public string Name { get; private set; }
+    public static Contract ActiveContract;
+
+    public int TotalPointsRemaining { get { return SkillPointsRemaining.Sum(); } }
+    public float Progress { get { return (float)TotalPointsRemaining / InitialPointsNeeded; } }
+
+    public string Name;
     //Programming, UserInterfaces, Databases, Networking, Web Development
-    public int[] SkillPointsNeeded;
-    public int TotalPointsNeeded;
+    public int[] SkillPointsRemaining;
+    public int InitialPointsNeeded;
     public int DaysToComplete;
     public int DaysRemaining;
     public int Payment;
@@ -17,10 +22,10 @@ public class Contract
     public Contract(string name, int[] reqs, int days, int currency, int rep)
     {
         Name = name;
-        SkillPointsNeeded = new int[5];
+        SkillPointsRemaining = new int[5];
         for (int i = 0; i < 5 && i < reqs.Length; i++)
-            SkillPointsNeeded[i] = reqs[i];
-        TotalPointsNeeded = SkillPointsNeeded.Sum();
+            SkillPointsRemaining[i] = reqs[i];
+        InitialPointsNeeded = SkillPointsRemaining.Sum();
         DaysToComplete = days;
         DaysRemaining = days;
         Payment = currency;
@@ -29,33 +34,52 @@ public class Contract
 
     public void AcceptContract()
     {
-        ContractManager.Instance.SetActiveContract(this);
+        SetActiveContract(this);
     }
 
-    public void WorkContract()
+    public static void SetActiveContract(Contract contract)
     {
-        for (int i = 0; i < SkillPointsNeeded.Length; i++)
+        if (contract != null)
         {
-            if (SkillPointsNeeded[i] <= 0) continue;
+            ActiveContract = contract;
+            TimeManager.PerDayEvent.AddListener(WorkContract);
+            InformationPanelManager.Instance.ShowActiveContract();
+            InformationPanelManager.Instance.UpdateActiveContract();
+        }
+        else
+        {
+            TimeManager.PerDayEvent.RemoveListener(WorkContract);
+            ActiveContract = null;
+            InformationPanelManager.Instance.HideActiveContract();
+        }
+    }
+
+    public static void WorkContract()
+    {
+        for (int i = 0; i < ActiveContract.SkillPointsRemaining.Length; i++)
+        {
+            if (ActiveContract.SkillPointsRemaining[i] <= 0) continue;
             int to_apply = Character.MyCharacter.Skills[i].Level + Random.Range(-1, 2);
-            SkillPointsNeeded[i] = Mathf.Clamp(
-                SkillPointsNeeded[i] - to_apply, 0, int.MaxValue);
+            ActiveContract.SkillPointsRemaining[i] = Mathf.Clamp(
+                ActiveContract.SkillPointsRemaining[i] - to_apply, 0, int.MaxValue);
             break;
         }
 
-        DaysRemaining--;
+        ActiveContract.DaysRemaining--;
 
-        bool done = !SkillPointsNeeded.Any(x => x > 0);
+        bool done = !ActiveContract.SkillPointsRemaining.Any(x => x > 0);
         if (done)
         {
-            CompleteContract();
-            ContractManager.Instance.SetActiveContract(null);
+            ActiveContract.CompleteContract();
+            SetActiveContract(null);
         }
-        else if (DaysRemaining <= 0)
+        else if (ActiveContract.DaysRemaining <= 0)
         {
-            CancelContract();
-            ContractManager.Instance.SetActiveContract(null);
+            ActiveContract.CancelContract();
+            SetActiveContract(null);
         }
+
+        InformationPanelManager.Instance.UpdateActiveContract();
     }
 
     public void CompleteContract()
@@ -64,6 +88,7 @@ public class Contract
         {
             Character.MyCharacter.AdjustMoney(Payment);
             Character.MyCharacter.Reputation += ReputationReward;
+            InformationPanelManager.Instance.DisplayMessage("Completed contract: " + Name, 1.0f);
         }
         else
         {
@@ -78,6 +103,8 @@ public class Contract
             Character.MyCharacter.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         else
             Company.MyCompany.AdjustReputation(-Mathf.FloorToInt((float)ReputationReward / 2));
+        InformationPanelManager.Instance.DisplayMessage("Failed contract: " + Name, 1.0f);
+        SetActiveContract(null);
     }
 
     public static Contract[] GenerateContracts()
@@ -129,7 +156,7 @@ public class Contract
         if ((object)a == null || (object)b == null)
             return false;
 
-        return (a.Name == b.Name) && (a.SkillPointsNeeded == b.SkillPointsNeeded)
+        return (a.Name == b.Name) && (a.SkillPointsRemaining == b.SkillPointsRemaining)
                && (a.DaysToComplete == b.DaysToComplete) && (a.Payment == b.Payment)
                && (a.ReputationReward == b.ReputationReward);
     }
@@ -145,7 +172,7 @@ public class Contract
         if ((object)contract == null)
             return false;
 
-        return (Name == contract.Name) && (SkillPointsNeeded == contract.SkillPointsNeeded)
+        return (Name == contract.Name) && (SkillPointsRemaining == contract.SkillPointsRemaining)
                && (DaysToComplete == contract.DaysToComplete) && (Payment == contract.Payment)
                && (ReputationReward == contract.ReputationReward);
     }
@@ -155,7 +182,7 @@ public class Contract
         if ((object)contract == null)
             return false;
 
-        return (Name == contract.Name) && (SkillPointsNeeded == contract.SkillPointsNeeded)
+        return (Name == contract.Name) && (SkillPointsRemaining == contract.SkillPointsRemaining)
                && (DaysToComplete == contract.DaysToComplete) && (Payment == contract.Payment)
                && (ReputationReward == contract.ReputationReward);
     }
@@ -166,7 +193,7 @@ public class Contract
         {
             int hash = 17;
             hash = hash * 23 + (Name != null ? Name.GetHashCode() : 1);
-            hash = hash * 23 + SkillPointsNeeded.GetHashCode();
+            hash = hash * 23 + SkillPointsRemaining.GetHashCode();
             hash = hash * 23 + DaysToComplete.GetHashCode();
             hash = hash * 23 + Payment.GetHashCode();
             hash = hash * 23 + ReputationReward.GetHashCode();

@@ -44,8 +44,8 @@ public class ContractObject : MonoBehaviour
 
         for (int i = 0; i < SkillsTexts.Length; i++)
         {
-            SkillsTexts[i].transform.parent.gameObject.SetActive(contract.SkillPointsNeeded[i] > 0);
-            SkillsTexts[i].text = contract.SkillPointsNeeded[i].ToString();
+            SkillsTexts[i].transform.parent.gameObject.SetActive(contract.SkillPointsRemaining[i] > 0);
+            SkillsTexts[i].text = contract.SkillPointsRemaining[i].ToString();
         }
 
         PayText.text = contract.Payment.ToString("C");

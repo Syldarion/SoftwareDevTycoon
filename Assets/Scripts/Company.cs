@@ -14,6 +14,8 @@ public class Employee : Person
     public int Pay;
     public long HireDateBinary;
 
+    private float morale;
+
     public Employee()
     {
         
@@ -22,6 +24,7 @@ public class Employee : Person
     public void GiveRaise(float percentage)
     {
         Pay = Mathf.CeilToInt(Pay * (1.0f + percentage));
+        morale += percentage * 0.5f;
     }
 
     public void Promote()
@@ -46,6 +49,7 @@ public class Employee : Person
         new_employee.Skills = new SkillLevel[5];
         for (int i = 0; i < 5; i++)
             new_employee.Skills[i].Level = positionToFill.SkillRequirements[i] + Random.Range(0, 3);
+        new_employee.morale = 50.0f;
 
         return new_employee;
     }

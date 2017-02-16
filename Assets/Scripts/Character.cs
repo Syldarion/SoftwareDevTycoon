@@ -187,9 +187,7 @@ public class Character : Person
 
     public void Sleep()
     {
-        int sleep = ScheduleManager.Instance.ActiveSchedule.GetTodaysSchedule()
-            .Items.Count(x => x == ScheduleItem.Sleep);
-
+        int sleep = 8;
         if (sleep < 6) Exhaustion++;
         else if (sleep >= 8) Exhaustion--;
     }

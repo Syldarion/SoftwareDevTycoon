@@ -15,11 +15,6 @@ public class ContractManager : Singleton<ContractManager>
     public CanvasGroup ContractWorkPanel;
     public GameObject ContractObjectPrefab;
 
-    public Text ActiveContractNameText;
-    public Text ActiveContractPayText;
-    public Text ActiveContractDeadlineText;
-    public ProgressBar ActiveContractProgressBar;
-
     public Contract ActiveContract { get; private set; }
 
     private bool open;
@@ -83,64 +78,5 @@ public class ContractManager : Singleton<ContractManager>
         while (TimeManager.CurrentDate < week_from_now)
             yield return null;
         locked = false;
-    }
-
-    public void SetActiveContract(Contract contract)
-    {
-        ActiveContract = contract;
-
-        if (ActiveContract != null)
-        {
-            TimeManager.PerDayEvent.AddListener(WorkOnActiveContract);
-            ActiveContractNameText.text = contract.Name;
-            ActiveContractPayText.text = contract.Payment.ToString("N");
-            ActiveContractDeadlineText.text = contract.DaysRemaining.ToString();
-        }
-        else
-        {
-            TimeManager.PerDayEvent.RemoveListener(WorkOnActiveContract);
-            ActiveContractNameText.text = "No Contract";
-            ActiveContractPayText.text = "N/A";
-            ActiveContractDeadlineText.text = "N/A";
-        }
-    }
-
-    public void WorkOnActiveContract()
-    {
-        //called daily in-game
-        if (ActiveContract == null) return;
-
-        ActiveContract.WorkContract();
-        UpdateActiveContractInfo();
-    }
-
-    public void CancelActiveContract()
-    {
-        if (ActiveContract == null) return;
-
-        ActiveContract.CancelContract();
-        SetActiveContract(null);
-    }
-
-    public void UpdateActiveContractInfo()
-    {
-        if (ActiveContract != null)
-        {
-            ActiveContractDeadlineText.text = ActiveContract.DaysRemaining.ToString();
-
-            float contract_progress =
-                (float)(ActiveContract.TotalPointsNeeded - ActiveContract.SkillPointsNeeded.Sum()) /
-                ActiveContract.TotalPointsNeeded;
-
-            ActiveContractProgressBar.SetProgress(contract_progress);
-        }
-        else
-        {
-            //ActiveContractProgressBar.rectTransform.sizeDelta = MaxBarSize;
-            //ActiveContractProgressBar.color = Color.white;
-
-            //ActiveContractDeadlineBar.rectTransform.sizeDelta = MaxBarSize;
-            //ActiveContractDeadlineBar.color = Color.white;
-        }
     }
 }

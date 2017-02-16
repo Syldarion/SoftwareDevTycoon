@@ -15,18 +15,13 @@ public class CompanyManager : Singleton<CompanyManager>
     public Text NewCompanyCostText;
 
     [Header("Company Info UI")]
-    public CanvasGroup InfoPanel;
-    public Text InfoName;
+    public Text InfoCompanyName;
     public Text InfoOfficeCount;
     public Text InfoEmployeeCount;
-    public ProgressBar InfoProjectProgress;
 
     [Header("Company Project UI")]
     public CanvasGroup ProjectPanel;
     public Text ProjectName;
-    public RectTransform ProjectTaskList;
-    public Text ProjectProgressText;
-    public ProjectTaskItem ProjectTaskItemPrefab;
 
     [Header("Company Offices UI")]
     public CanvasGroup OfficesPanel;
@@ -37,14 +32,6 @@ public class CompanyManager : Singleton<CompanyManager>
     public CanvasGroup EmployeesPanel;
     public RectTransform EmployeeList;
     public EmployeeItem EmployeeItemPrefab;
-
-    [Header("Task Detail UI")]
-    public Text TaskDetailName;
-    public Text[] TaskDetailWorkNeeded;
-    public Text TaskDetailDaysRemaining;
-    public Text TaskDetailWorkerName;
-    public Text TaskDetailStatus;
-    public Dropdown TaskDetailWorkerDropdown;
 
     [Header("Office Detail UI")]
     public Text OfficeDetailLocation;
@@ -93,22 +80,14 @@ public class CompanyManager : Singleton<CompanyManager>
         //or if office count or employee count changes
         if (Company.MyCompany == null)
             return;
-
-        InfoName.text = Company.MyCompany.Name();
+        
         InfoOfficeCount.text = Company.MyCompany.CompanyOffices.Count.ToString();
         InfoEmployeeCount.text = Company.MyCompany.TeamSize.ToString();
-        InfoProjectProgress.SetProgress(Company.MyCompany.CompanyProject.Progress);
-        InfoProjectProgress.SetBarText(Company.MyCompany.CompanyProject.Progress.ToString("P"), true);
     }
 
-    private void OpenNewCompanyPanel()
+    public void OpenNewCompanyPanel()
     {
         UIUtilities.ActivateWithLock(NewCompanyPanel, ref open);
-    }
-
-    public void CloseCompanyInfoPanel()
-    {
-        UIUtilities.DeactivateWithLock(InfoPanel, ref open);
     }
 
     public void OpenCompanyProjectPanel()
@@ -116,15 +95,6 @@ public class CompanyManager : Singleton<CompanyManager>
         UIUtilities.ActivateWithLock(ProjectPanel, ref open);
 
         ProjectName.text = Company.MyCompany.CompanyProject.Name;
-        foreach (Transform child in ProjectTaskList)
-            Destroy(child.gameObject);
-        foreach (ProjectTask task in Company.MyCompany.CompanyProject.ProjectTasks)
-        {
-            var new_task_item = Instantiate(ProjectTaskItemPrefab);
-            new_task_item.PopulateData(task);
-            new_task_item.transform.SetParent(ProjectTaskList, false);
-        }
-        ProjectProgressText.text = Company.MyCompany.CompanyProject.Progress.ToString("P");
     }
 
     public void CloseCompanyProjectPanel()
@@ -170,35 +140,6 @@ public class CompanyManager : Singleton<CompanyManager>
         UIUtilities.DeactivateWithLock(EmployeesPanel, ref open);
     }
 
-    public void PopulateTaskDetail(ProjectTask task)
-    {
-        if (task == null) return;
-
-        TaskDetailName.text = task.Name;
-        for (int i = 0; i < task.WorkNeeded.Length; i++)
-            TaskDetailWorkNeeded[i].text = task.WorkNeeded[i].ToString();
-        TaskDetailDaysRemaining.text = task.DaysRemaining.ToString();
-        TaskDetailWorkerName.text = task.Worker.Name;
-        TaskDetailStatus.text = task.Complete
-            ? "Complete"
-            : task.Progress > 0
-                ? "In Progress"
-                : "Ready";
-        TaskDetailWorkerDropdown.ClearOptions();
-        List<Dropdown.OptionData> employee_options =
-            Company.MyCompany.EmployeeList().Select(emp => new Dropdown.OptionData(emp.Name)).ToList();
-        TaskDetailWorkerDropdown.AddOptions(employee_options);
-    }
-
-    public void OnTaskDetailWorkerDropdownChanged(int selectedIndex)
-    {
-        Employee selected_employee =
-            Company.MyCompany.EmployeeList()
-                   .First(x => x.Name == TaskDetailWorkerDropdown.options[selectedIndex].text);
-
-        selectedTask.SetWorker(selected_employee);
-    }
-
     public void PopulateOfficeDetail(Office office)
     {
         if (office == null) return;
@@ -241,7 +182,9 @@ public class CompanyManager : Singleton<CompanyManager>
     {
         int new_office_space = int.Parse(FirstOfficeSpaceInput.text);
         int total_cost = Company.BASE_COMPANY_COST + (Office.COST_PER_SPACE * new_office_space);
-        
+
+        NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
+
         CreateCompanyButton.onClick.RemoveListener(CreateCompany);
         if(total_cost <= Character.MyCharacter.Money)
             CreateCompanyButton.onClick.AddListener(CreateCompany);
@@ -263,12 +206,6 @@ public class CompanyManager : Singleton<CompanyManager>
                                                      DialogueBox.Instance.Cleanup();
                                                  },
                                                  () => { DialogueBox.Instance.Cleanup(); });
-    }
-
-    public void SelectTask(ProjectTask task)
-    {
-        selectedTask = task;
-        PopulateTaskDetail(selectedTask);
     }
 
     public void SelectOffice(Office office)
