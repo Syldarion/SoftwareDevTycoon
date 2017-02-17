@@ -7,11 +7,8 @@ public class EscapeMenuManager : MonoBehaviour
 {
     private InputField saveNameField;
 
-    private bool open;
-
     void Awake()
     {
-        open = false;
     }
 
     void Start()
@@ -22,22 +19,7 @@ public class EscapeMenuManager : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            open = !open;
-
-            if (open)
-            {
-                TimeManager.Pause();
-                TimeManager.Lock();
-                UIUtilities.ActivateCanvasGroup(GetComponent<CanvasGroup>());
-            }
-            else
-            {
-                UIUtilities.DeactivateCanvasGroup(GetComponent<CanvasGroup>());
-                TimeManager.Unlock();
-                TimeManager.Unpause();
-            }
-        }
+            SDTUIController.Instance.OpenCanvas(GetComponent<CanvasGroup>());
     }
 
     public void TrySaveGame()

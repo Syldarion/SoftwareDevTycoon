@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 
 [Serializable]
 public class Office
@@ -13,6 +12,7 @@ public class Office
     public const int COST_PER_SPACE = 100;
 
     //Properties
+    public int Space { get { return space; } }
     public int RemainingSpace
     {
         get { return space - Buildings.Sum(x => x.Size); }
@@ -21,7 +21,17 @@ public class Office
     {
         get { return Buildings.Sum(x => x.UpkeepCost); }
     }
-    
+    public int PurchasePrice { get { return Space * COST_PER_SPACE; } }
+    public int SellPrice
+    {
+        get
+        {
+            //this needs to be better later, take into account new buildings and such
+            int used_space = Space - RemainingSpace;
+            return used_space * COST_PER_SPACE * 2 + RemainingSpace * COST_PER_SPACE;
+        }
+    }
+
     //Public Fields
     public List<OfficeBuilding> Buildings;
     public Location OfficeLocation;
@@ -31,6 +41,7 @@ public class Office
     
     public Office(int officeSpace)
     {
+        Buildings = new List<OfficeBuilding>();
         space = Mathf.Clamp(officeSpace, MIN_OFFICE_SPACE, MAX_OFFICE_SPACE);
     }
 
@@ -58,13 +69,6 @@ public class Office
         int old_space = space;
         space = Mathf.Clamp(space + extraSpace, 0, MAX_OFFICE_SPACE);
         return (space - old_space) * COST_PER_SPACE;
-    }
-    
-    //Getters / Setters
-
-    public int Space()
-    {
-        return space;
     }
 }
 

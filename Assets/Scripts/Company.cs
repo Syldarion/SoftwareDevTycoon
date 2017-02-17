@@ -60,7 +60,7 @@ public class Company
 {
     public static Company MyCompany;
 
-    public const int BASE_COMPANY_COST = 500000;
+    public const int BASE_COMPANY_COST = 100000;
 
     //Properties
     public string Name { get { return name; } }
@@ -94,6 +94,7 @@ public class Company
         Company new_company = new Company(name);
 
         Office init_office = new Office(initSpace);
+        init_office.OfficeLocation = Character.MyCharacter.CurrentLocation;
         init_office.AddOfficeBuilding(new MainBuilding());
 
         new_company.AddOffice(init_office);

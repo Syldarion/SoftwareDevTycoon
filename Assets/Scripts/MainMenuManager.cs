@@ -48,9 +48,14 @@ public class MainMenuManager : Singleton<MainMenuManager>
 
     public void SwitchActivePanel(CanvasGroup panel)
     {
-        UIUtilities.DeactivateCanvasGroup(activePanel);
+        activePanel.alpha = 0.0f;
+        activePanel.interactable = false;
+        activePanel.blocksRaycasts = false;
         activePanel = panel == activePanel ? null : panel;
-        UIUtilities.ActivateCanvasGroup(activePanel);
+        if (activePanel == null) return;
+        activePanel.alpha = 1.0f;
+        activePanel.interactable = true;
+        activePanel.blocksRaycasts = true;
     }
 
     public void ExitGame()

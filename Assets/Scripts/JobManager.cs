@@ -38,7 +38,6 @@ public class JobManager : Singleton<JobManager>
 
     private bool applicationSectionOpen = true;
     private bool searchSectionOpen = true;
-    private bool open;
 
     void Awake()
     {
@@ -72,30 +71,13 @@ public class JobManager : Singleton<JobManager>
     {
         if (ControlKeys.GetControlKeyDown(ControlKeys.OPEN_JOB_PANEL))
         {
-            if (!open && Job.MyJob == null)
-                OpenJobSearch();
-            else if (Job.MyJob == null)
-                CloseJobSearch();
-            else if (!open)
-                OpenJobInfo();
-            else
-                CloseJobInfo();
-        }
-
-        if (ControlKeys.GetControlKeyDown(ControlKeys.PRINT_JOB_DEBUG))
-        {
             if (Job.MyJob == null)
-                Debug.Log("No job");
+                OpenJobSearch();
             else
-                Debug.Log(string.Format(
-                    "Current Job Info\nCompany: {0}\nSalary: {1}\nTitle: {2}\nPerformance: {3}",
-                    Job.MyJob.CompanyName,
-                    Job.MyJob.Salary,
-                    Job.MyJob.CurrentTitle.Name,
-                    Job.MyJob.Performance));
+                OpenJobInfo();
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape) && open)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             if(Job.MyJob == null)
                 CloseJobSearch();
@@ -113,7 +95,7 @@ public class JobManager : Singleton<JobManager>
     {
         if (Job.MyJob != null) return;
         
-        UIUtilities.ActivateWithLock(JobSearchPanel, ref open);
+        SDTUIController.Instance.OpenCanvas(JobSearchPanel);
         
         PopulateApplicationList();
         PopulateSearchList();
@@ -187,14 +169,14 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobSearch()
     {
-        UIUtilities.DeactivateWithLock(JobSearchPanel, ref open);
+        SDTUIController.Instance.CloseCanvas(JobSearchPanel);
     }
 
     public void OpenJobInfo()
     {
         if (Job.MyJob == null) return;
-
-        UIUtilities.ActivateWithLock(JobInfoPanel, ref open);
+        
+        SDTUIController.Instance.OpenCanvas(JobInfoPanel);
 
         JobTitleText.text = Job.MyJob.CurrentTitle.Name;
         JobCompanyText.text = Job.MyJob.CompanyName;
@@ -203,7 +185,7 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobInfo()
     {
-        UIUtilities.DeactivateWithLock(JobInfoPanel, ref open);
+        SDTUIController.Instance.CloseCanvas(JobInfoPanel);
     }
 
     public void FilterSearchResults()

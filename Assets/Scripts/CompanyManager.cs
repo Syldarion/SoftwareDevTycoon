@@ -19,10 +19,6 @@ public class CompanyManager : Singleton<CompanyManager>
     public Text InfoOfficeCount;
     public Text InfoEmployeeCount;
 
-    [Header("Company Project UI")]
-    public CanvasGroup ProjectPanel;
-    public Text ProjectName;
-
     [Header("Company Offices UI")]
     public CanvasGroup OfficesPanel;
     public RectTransform OfficeList;
@@ -36,8 +32,9 @@ public class CompanyManager : Singleton<CompanyManager>
     [Header("Office Detail UI")]
     public Text OfficeDetailLocation;
     public Text OfficeDetailBuildingCount;
+    public Text OfficeDetailUpkeepCost;
     public Text OfficeDetailBonuses;
-    public Text OfficeDetailRemainingSpace;
+    public ProgressBar OfficeDetailRemainingSpace;
     public Button OfficeAddBuildingButton;
     public Button OfficeSellButton;
     public Button OfficeBuyButton;
@@ -57,19 +54,17 @@ public class CompanyManager : Singleton<CompanyManager>
     
     private Office selectedOffice;
     private Employee selectedEmployee;
-    private bool open;
 
     void Start()
     {
         Instance = this;
         selectedOffice = null;
         selectedEmployee = null;
-        open = false;
     }
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape) && open)
+        if(Input.GetKeyDown(KeyCode.Escape))
         {
             CloseNewCompanyPanel();
             CloseCompanyOfficesPanel();
@@ -89,18 +84,16 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenNewCompanyPanel()
     {
-        UIUtilities.ActivateWithLock(NewCompanyPanel, ref open);
+        SDTUIController.Instance.OpenCanvas(NewCompanyPanel);
     }
 
     public void CloseNewCompanyPanel()
     {
-        UIUtilities.DeactivateWithLock(NewCompanyPanel, ref open);
+        SDTUIController.Instance.CloseCanvas(NewCompanyPanel);
     }
 
     public void OpenCompanyOfficesPanel()
     {
-        UIUtilities.ActivateWithLock(OfficesPanel, ref open);
-
         foreach (Transform child in OfficeList)
             Destroy(child.gameObject);
         foreach (Office office in Company.MyCompany.CompanyOffices)
@@ -109,17 +102,17 @@ public class CompanyManager : Singleton<CompanyManager>
             new_office_item.PopulateData(office);
             new_office_item.transform.SetParent(OfficeList, false);
         }
+
+        SDTUIController.Instance.OpenCanvas(OfficesPanel);
     }
 
     public void CloseCompanyOfficesPanel()
     {
-        UIUtilities.DeactivateWithLock(OfficesPanel, ref open);
+        SDTUIController.Instance.CloseCanvas(OfficesPanel);
     }
 
     public void OpenCompanyEmployeesPanel()
     {
-        UIUtilities.ActivateWithLock(EmployeesPanel, ref open);
-
         foreach (Transform child in EmployeeList)
             Destroy(child.gameObject);
         foreach (Employee employee in Company.MyCompany.EmployeeList())
@@ -128,25 +121,35 @@ public class CompanyManager : Singleton<CompanyManager>
             new_employee_item.PopulateData(employee);
             new_employee_item.transform.SetParent(EmployeeList, false);
         }
+
+        SDTUIController.Instance.OpenCanvas(EmployeesPanel);
     }
 
     public void CloseCompanyEmployeesPanel()
     {
-        UIUtilities.DeactivateWithLock(EmployeesPanel, ref open);
+        SDTUIController.Instance.CloseCanvas(EmployeesPanel);
     }
 
     public void PopulateOfficeDetail(Office office)
     {
         if (office == null) return;
 
-        OfficeDetailLocation.text = office.OfficeLocation.Name;
+        OfficeDetailLocation.text = string.Format("Office Location\n{0}", office.OfficeLocation.Name);
         OfficeDetailBuildingCount.text = office.Buildings.Count.ToString();
+        OfficeDetailUpkeepCost.text = office.TotalUpkeepCost.ToString("C");
         //office building bonuses, once they're implemented
-        OfficeDetailRemainingSpace.text = office.RemainingSpace.ToString();
-        OfficeAddBuildingButton.interactable = office.RemainingSpace > 0;
-        OfficeBuyButton.interactable = !Company.MyCompany.CompanyOffices.Contains(office);
-        OfficeSellButton.interactable = Company.MyCompany.CompanyOffices.Contains(office) &&
-                                        Company.MyCompany.CompanyOffices.Count > 1;
+
+        float space_percentage = (float)office.RemainingSpace / office.Space;
+        string space_string = string.Format("{0} / {1}", office.RemainingSpace, office.Space);
+        OfficeDetailRemainingSpace.SetProgress(space_percentage);
+        OfficeDetailRemainingSpace.SetBarText(space_string, true);
+
+        OfficeAddBuildingButton.gameObject.SetActive(office.RemainingSpace > 0);
+        OfficeBuyButton.GetComponentInChildren<Text>().text = string.Format("Buy Office: ${0}", office.PurchasePrice);
+        OfficeBuyButton.gameObject.SetActive(!Company.MyCompany.CompanyOffices.Contains(office));
+        OfficeSellButton.GetComponentInChildren<Text>().text = string.Format("Sell Office: ${0}", office.SellPrice);
+        OfficeSellButton.gameObject.SetActive(Company.MyCompany.CompanyOffices.Contains(office) &&
+                                        Company.MyCompany.CompanyOffices.Count > 1);
     }
 
     public void PopulateEmployeeDetail(Employee employee)
@@ -182,6 +185,8 @@ public class CompanyManager : Singleton<CompanyManager>
         int total_cost = Company.BASE_COMPANY_COST + (Office.COST_PER_SPACE * new_office_space);
 
         NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
+
+        Debug.Log(string.Format("Player: {0}, Company: {1}", Character.MyCharacter.Money, total_cost));
 
         CreateCompanyButton.onClick.RemoveListener(CreateCompany);
         if(total_cost <= Character.MyCharacter.Money && total_cost != 0)

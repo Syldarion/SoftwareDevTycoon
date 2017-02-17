@@ -17,14 +17,12 @@ public class ContractManager : Singleton<ContractManager>
 
     public Contract ActiveContract { get; private set; }
 
-    private bool open;
-    private bool locked;
+    private bool onCooldown;
 
     void Awake()
     {
         Instance = this;
-        open = false;
-        locked = false;
+        onCooldown = false;
     }
 
     void Start()
@@ -34,22 +32,15 @@ public class ContractManager : Singleton<ContractManager>
     void Update()
     {
         if (ControlKeys.GetControlKeyDown(ControlKeys.OPEN_CONTRACT_PANEL))
-        {
-            if (!open)
-                OpenContractForm();
-            else
-                CloseContractForm();
-        }
+            OpenContractForm();
 
-        if (Input.GetKeyDown(KeyCode.Escape) && open)
+        if (Input.GetKeyDown(KeyCode.Escape))
             CloseContractForm();
     }
 
     public void OpenContractForm()
     {
-        if (locked) return;
-
-        UIUtilities.ActivateWithLock(ContractWorkPanel, ref open);
+        if (onCooldown) return;
 
         foreach (Contract contract in Contract.GenerateContracts())
         {
@@ -58,25 +49,26 @@ public class ContractManager : Singleton<ContractManager>
             new_contract_object.PopulateContractInfo(contract);
             new_contract_object.transform.SetParent(ContractWorkPanel.transform, false);
         }
+
+        SDTUIController.Instance.OpenCanvas(ContractWorkPanel);
     }
 
     public void CloseContractForm()
     {
-        UIUtilities.DeactivateWithLock(ContractWorkPanel, ref open);
-
         foreach(Transform child in ContractWorkPanel.transform)
             Destroy(child.gameObject);
 
-        locked = true;
+        SDTUIController.Instance.CloseCanvas(ContractWorkPanel);
 
         StartCoroutine(LockCooldown());
     }
 
     private IEnumerator LockCooldown()
     {
+        onCooldown = true;
         DateTime week_from_now = TimeManager.CurrentDate.AddDays(7.0);
         while (TimeManager.CurrentDate < week_from_now)
             yield return null;
-        locked = false;
+        onCooldown = false;
     }
 }

@@ -9,11 +9,9 @@ public class InGameMenuManager : MonoBehaviour
     public CanvasGroup MenuOptionsPanel;
 
     private InputField saveNameField;
-    private bool open;
 
     void Awake()
     {
-        open = false;
     }
 
     void Start()
@@ -28,12 +26,7 @@ public class InGameMenuManager : MonoBehaviour
 
     public void ToggleMenu()
     {
-        open = !open;
-
-        if(open)
-            UIUtilities.ActivateCanvasGroup(MenuOptionsPanel);
-        else
-            UIUtilities.DeactivateCanvasGroup(MenuOptionsPanel);
+        SDTUIController.Instance.OpenCanvas(MenuOptionsPanel, false, true);
     }
 
     public void ToggleButtons(RectTransform mainSibling)
