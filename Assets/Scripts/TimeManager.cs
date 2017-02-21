@@ -55,18 +55,16 @@ public class TimeManager : Singleton<TimeManager>
 
     public static void Pause()
     {
-        if (locked) return;
-
-        paused = false;
-        TogglePause();
+        if (locked || paused) return;
+        paused = true;
+        OnTogglePauseEvent.Invoke(paused);
     }
 
     public static void Unpause()
     {
-        if (locked) return;
-
-        paused = true;
-        TogglePause();
+        if (locked || !paused) return;
+        paused = false;
+        OnTogglePauseEvent.Invoke(paused);
     }
 
     public static void Lock()
@@ -81,7 +79,7 @@ public class TimeManager : Singleton<TimeManager>
 
     IEnumerator PerDayTick()
     {
-        while (Application.isPlaying) //to be changed to game running var later
+        while (Application.isPlaying)
         {
             while (!paused)
             {
@@ -97,7 +95,6 @@ public class TimeManager : Singleton<TimeManager>
                 if (Year > old_year)
                 {
                     PerYearEvent.Invoke();
-                    //reset to 0, because obviously the later checks won't catch 0 being greater than 52
                     old_week = 0;
                     old_month = 0;
                 }

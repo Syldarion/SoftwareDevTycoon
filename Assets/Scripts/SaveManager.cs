@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.SceneManagement;
 
@@ -41,9 +42,19 @@ public class SaveManager : Singleton<SaveManager>
         foreach(FileInfo info in file_info)
         {
             FileStream stream = File.Open(info.FullName, FileMode.Open);
-            GameSave new_save = (GameSave)formatter.Deserialize(stream);
-            stream.Close();
-            Saves.Add(new_save);
+            try
+            {
+                GameSave new_save = (GameSave)formatter.Deserialize(stream);
+                Saves.Add(new_save);
+            }
+            catch(SerializationException ex)
+            {
+                Debug.Log(string.Format("Failed to load game save {0}: {1}", info.Name, ex.Message));
+            }
+            finally
+            {
+                stream.Close();
+            }
         }
     }
 

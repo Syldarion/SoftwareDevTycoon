@@ -72,16 +72,6 @@ public class CompanyManager : Singleton<CompanyManager>
         }
     }
 
-    public void UpdateCompanyInfoPanel()
-    {
-        if (Company.MyCompany == null)
-            return;
-
-        InfoCompanyName.text = Company.MyCompany.Name;
-        InfoOfficeCount.text = Company.MyCompany.CompanyOffices.Count.ToString();
-        InfoEmployeeCount.text = Company.MyCompany.TeamSize.ToString();
-    }
-
     public void OpenNewCompanyPanel()
     {
         SDTUIController.Instance.OpenCanvas(NewCompanyPanel);

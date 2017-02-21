@@ -48,14 +48,19 @@ public class MainMenuManager : Singleton<MainMenuManager>
 
     public void SwitchActivePanel(CanvasGroup panel)
     {
-        activePanel.alpha = 0.0f;
-        activePanel.interactable = false;
-        activePanel.blocksRaycasts = false;
+        if(activePanel != null)
+        {
+            activePanel.alpha = 0.0f;
+            activePanel.interactable = false;
+            activePanel.blocksRaycasts = false;
+        }
         activePanel = panel == activePanel ? null : panel;
-        if (activePanel == null) return;
-        activePanel.alpha = 1.0f;
-        activePanel.interactable = true;
-        activePanel.blocksRaycasts = true;
+        if(activePanel != null)
+        {
+            activePanel.alpha = 1.0f;
+            activePanel.interactable = true;
+            activePanel.blocksRaycasts = true;
+        }
     }
 
     public void ExitGame()

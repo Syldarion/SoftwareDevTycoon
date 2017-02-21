@@ -42,6 +42,8 @@ public class ContractManager : Singleton<ContractManager>
     {
         if (onCooldown) return;
 
+        foreach (Transform child in ContractWorkPanel.transform)
+            Destroy(child.gameObject);
         foreach (Contract contract in Contract.GenerateContracts())
         {
             ContractObject new_contract_object = Instantiate(ContractObjectPrefab).GetComponent<ContractObject>();
@@ -55,9 +57,6 @@ public class ContractManager : Singleton<ContractManager>
 
     public void CloseContractForm()
     {
-        foreach(Transform child in ContractWorkPanel.transform)
-            Destroy(child.gameObject);
-
         SDTUIController.Instance.CloseCanvas(ContractWorkPanel);
 
         StartCoroutine(LockCooldown());

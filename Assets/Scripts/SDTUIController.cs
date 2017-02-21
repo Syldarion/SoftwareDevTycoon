@@ -40,11 +40,14 @@ public class SDTUIController : Singleton<SDTUIController>
 
         if (!allowOthers)
         {
+            Debug.Log("Don't allow others block");
             if(ActiveCanvases.Count > 0)
                 foreach (CanvasGroup cg in ActiveCanvases)
                     CloseCanvas(cg);
             locked = true;
         }
+
+        ActiveCanvases.Add(canvas);
 
         StartCoroutine(OpenCanvasOverTime(canvas, revealTime));
     }

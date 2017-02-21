@@ -21,14 +21,16 @@ public class SkillAllocationControl : MonoBehaviour
     void Awake()
     {
         SkillNameText.text = Skill.GetSkillFromEnum(SkillType).Name;
-        CurrentSkillLevel = 0;
+        CurrentSkillLevel = 1;
 
         MaxBarSize = SkillLevelBarTransform.sizeDelta;
     }
 
     void Start()
     {
-        ModifySkillLevel(0);
+        RemainingPointsText.text = string.Format("Remaining: {0}", RemainingPoints);
+        SkillLevelBarTransform.sizeDelta = new Vector2(0.1f * MaxBarSize.x, 0.0f);
+        SkillLevelText.text = CurrentSkillLevel.ToString();
     }
 
     void Update()
@@ -38,7 +40,9 @@ public class SkillAllocationControl : MonoBehaviour
 
     public void ModifySkillLevel(int modifier)
     {
-        if (RemainingPoints <= 0) return;
+        if (RemainingPoints <= 0 || 
+            (CurrentSkillLevel >= 10 && modifier > 0) || 
+            (CurrentSkillLevel <= 1 && modifier < 0)) return;
 
         RemainingPoints -= modifier;
         RemainingPointsText.text = string.Format("Remaining: {0}", RemainingPoints);
