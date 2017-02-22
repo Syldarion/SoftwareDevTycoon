@@ -29,7 +29,7 @@ public class CompanyOfficeItem : MonoBehaviour, IPointerDownHandler
     public void PopulateData(Office office)
     {
         LocationText.text = string.Format("Location\n{0}", office.OfficeLocation.Name);
-        BuildingCountText.text = office.Buildings.Count.ToString();
+        //BuildingCountText.text = office.Buildings.Count.ToString();
         UpkeepCostText.text = office.TotalUpkeepCost.ToString("C");
     }
 }

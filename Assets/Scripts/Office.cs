@@ -3,6 +3,9 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
+using UnityEditor;
+using UnityEngine.Events;
 
 [Serializable]
 public class Office
@@ -15,11 +18,11 @@ public class Office
     public int Space { get { return space; } }
     public int RemainingSpace
     {
-        get { return space - Buildings.Sum(x => x.Size); }
+        get { return space - Features.Sum(x => x.Size); }
     }
     public int TotalUpkeepCost
     {
-        get { return Buildings.Sum(x => x.UpkeepCost); }
+        get { return Features.Sum(x => x.UpkeepCost); }
     }
     public int PurchasePrice { get { return Space * COST_PER_SPACE; } }
     public int SellPrice
@@ -33,15 +36,19 @@ public class Office
     }
 
     //Public Fields
-    public List<OfficeBuilding> Buildings;
+    public List<OfficeFeature> Features;
+    public List<Employee> Employees;
     public Location OfficeLocation;
+    public float[] QualityBonuses;
+    public float MoraleModifier;
+    public float SalesModifier;
     
     //Private Fields
     private int space;
     
     public Office(int officeSpace)
     {
-        Buildings = new List<OfficeBuilding>();
+        Features = new List<OfficeFeature>();
         space = Mathf.Clamp(officeSpace, MIN_OFFICE_SPACE, MAX_OFFICE_SPACE);
     }
 
@@ -50,10 +57,12 @@ public class Office
 
     }
 
-    public void AddOfficeBuilding(OfficeBuilding building)
+    public void AddOfficeFeature(OfficeFeature feature)
     {
-        if (RemainingSpace - building.Size >= 0)
-            Buildings.Add(building);
+        if(RemainingSpace - feature.Size >= 0)
+        {
+            Features.Add(feature);
+        }
     }
 
     /// <summary>
@@ -73,95 +82,78 @@ public class Office
 }
 
 [Serializable]
-public class OfficeBuilding
+public class OfficeFeature
 {
     //Properties
 
 
     //Public Fields
+    public string Name;
     public int Size;
     public int UpkeepCost;
+    public List<OfficeBonus> Bonuses;
 
     //Private Fields
 
-    public OfficeBuilding(int size, int upkeep)
+    public OfficeFeature(string featureName, int size, int upkeep)
     {
+        Name = featureName;
         Size = size;
         UpkeepCost = upkeep;
     }
 
-    public virtual void ApplyBonus(Office office) { }
-
-    //Getters / Setters
-}
-
-public class MainBuilding : OfficeBuilding
-{
-    public MainBuilding()
-        : base(10, 100)
+    public OfficeFeature AddBonus(OfficeBonus bonus)
     {
-        
+        Bonuses.Add(bonus);
+        return this;
     }
 
-    public override void ApplyBonus(Office office)
+    public void ApplyBonuses(Office office)
     {
-        
-    }
-}
-
-[Serializable]
-public class CafeteriaBuilding : OfficeBuilding
-{
-    public CafeteriaBuilding()
-        : base(10, 100)
-    {
-        
+        foreach(OfficeBonus bonus in Bonuses)
+            bonus.OnAdd(office);
     }
 
-    public override void ApplyBonus(Office office)
+    public void RemoveBonuses(Office office)
     {
-        
+        foreach(OfficeBonus bonus in Bonuses)
+            bonus.OnRemove(office);
     }
 }
 
 [Serializable]
-public class ConferenceBuilding : OfficeBuilding
+public class OfficeBonus
 {
-    public ConferenceBuilding() 
-        : base(10, 100)
-    {
-    }
+    public UnityAction<Office> OnAdd, OnRemove;
+}
 
-    public override void ApplyBonus(Office office)
+public class IncreaseMoraleFactor : OfficeBonus
+{
+    public IncreaseMoraleFactor(float increaseBy)
     {
-
+        OnAdd = x => x.MoraleModifier += increaseBy;
+        OnRemove = x => x.MoraleModifier -= increaseBy;
     }
 }
 
-[Serializable]
-public class DevelopmentBuilding : OfficeBuilding
+public class IncreaseQualityFactor : OfficeBonus
 {
-    public DevelopmentBuilding()
-        : base(10, 100)
+    public IncreaseQualityFactor(int[] qualityIndices, float increaseBy)
     {
-    }
-
-    public override void ApplyBonus(Office office)
-    {
-
+        foreach (int i in qualityIndices)
+        {
+            int i1 = i;
+            OnAdd += x => x.QualityBonuses[i1] += increaseBy;
+            OnRemove += x => x.QualityBonuses[i1] -= increaseBy;
+        }
     }
 }
 
-[Serializable]
-public class RecreationBuilding : OfficeBuilding
+public class IncreaseSalesFactor : OfficeBonus
 {
-    public RecreationBuilding()
-        : base(10, 100)
+    public IncreaseSalesFactor(float increaseBy)
     {
-    }
-
-    public override void ApplyBonus(Office office)
-    {
-
+        OnAdd = x => x.SalesModifier += increaseBy;
+        OnRemove = x => x.SalesModifier -= increaseBy;
     }
 }

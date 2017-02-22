@@ -12,6 +12,7 @@ public class Company
     public static Company MyCompany;
 
     public const int BASE_COMPANY_COST = 100000;
+    public const int TRAINING_COST_MULTIPLIER = 500;
 
     //Properties
     public string Name { get { return name; } }
@@ -46,7 +47,6 @@ public class Company
 
         Office init_office = new Office(initSpace);
         init_office.OfficeLocation = Character.MyCharacter.CurrentLocation;
-        init_office.AddOfficeBuilding(new MainBuilding());
 
         new_company.AddOffice(init_office);
 
@@ -138,7 +138,7 @@ public class Company
     public void TrainEmployee(Employee employee)
     {
         int skill_sum = Mathf.Clamp(employee.Skills.Sum(x => x.Level), 1, int.MaxValue);
-        int training_cost = 500 * skill_sum;
+        int training_cost = TRAINING_COST_MULTIPLIER * skill_sum;
 
         AdjustFunds(-training_cost);
 
@@ -148,6 +148,23 @@ public class Company
             int amount_to_increase = Mathf.FloorToInt(10.0f * skill_makeup_percentage * Random.Range(0.5f, 2.0f)) + 1;
             employee.Skills[i].Level += amount_to_increase;
         }
+    }
+
+    public void WorkOnProject()
+    {
+        int[] work_sums = new int[employees[0].Skills.Length];
+        for(int i = 0; i < work_sums.Length; i++)
+        {
+            foreach(Office office in CompanyOffices)
+            {
+                int office_work_sum = office.Employees.Sum(x => x.Skills[i].Level);
+                office_work_sum = Mathf.CeilToInt(office_work_sum * (1.0f + office.QualityBonuses[i]));
+                work_sums[i] = office_work_sum;
+            }
+        }
+        
+        for(int i = 0; i < work_sums.Length; i++)
+            CompanyProject.ApplyWork(employees[0].Skills[i].Skill, work_sums[i]);
     }
 
     //Getters / Setters

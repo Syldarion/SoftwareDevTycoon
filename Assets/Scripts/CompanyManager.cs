@@ -125,7 +125,7 @@ public class CompanyManager : Singleton<CompanyManager>
         if (office == null) return;
 
         OfficeDetailLocation.text = string.Format("Office Location\n{0}", office.OfficeLocation.Name);
-        OfficeDetailBuildingCount.text = office.Buildings.Count.ToString();
+        //OfficeDetailBuildingCount.text = office.Buildings.Count.ToString();
         OfficeDetailUpkeepCost.text = office.TotalUpkeepCost.ToString("C");
         //office building bonuses, once they're implemented
 
