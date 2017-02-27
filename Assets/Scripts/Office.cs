@@ -62,6 +62,7 @@ public class Office
         if(RemainingSpace - feature.Size >= 0)
         {
             Features.Add(feature);
+            feature.ApplyBonuses(this);
         }
     }
 
@@ -84,6 +85,35 @@ public class Office
 [Serializable]
 public class OfficeFeature
 {
+    public static OfficeFeature[] AllFeatures = {
+        new OfficeFeature("Cubicles", 100, 100)
+            .AddBonus(new OfficeMoraleBonus(-0.1f))
+            .AddBonus(new OfficeQualityBonus(new[] {0, 1, 2, 3, 4}, 0.05f))
+            .AddDescription("Decreases office morale by 10%\nIncreases all project quality factors by 5%"),
+        new OfficeFeature("Open Floorplan", 100, 100)
+            .AddBonus(new OfficeMoraleBonus(0.1f))
+            .AddBonus(new OfficeQualityBonus(new[] {0, 1, 2, 3, 4}, -0.05f))
+            .AddDescription("Increases office morale by 10%\nDecreases all project quality factors by 5%"),
+        new OfficeFeature("Recreation Area", 100, 500)
+            .AddBonus(new OfficeMoraleBonus(0.2f))
+            .AddBonus(new OfficeQualityBonus(new[] {0, 1, 2, 3, 4}, -0.05f))
+            .AddDescription("Increases office morale by 20%\nDecreases all project quality factors by 5%"),
+        new OfficeFeature("Conference Hall", 500, 1000)
+            .AddBonus(new OfficeSalesBonus(0.1f))
+            .AddBonus(new OfficeQualityBonus(new[] {0, 1, 2, 3, 4}, 0.05f))
+            .AddDescription("Increases sales by 10%\nIncreases all project quality factors by 5%"),
+        new OfficeFeature("Cafeteria", 500, 500)
+            .AddBonus(new OfficeMoraleBonus(0.1f))
+            .AddDescription("Increases office morale by 10%"),
+        new OfficeFeature("Server Room", 100, 1000)
+            .AddBonus(new OfficeQualityBonus(new [] {2, 3}, 0.1f))
+            .AddDescription("Increases databases and networking project quality factors by 10%"),
+        new OfficeFeature("IT Department", 100, 5000)
+            .AddBonus(new OfficeMoraleBonus(0.1f))
+            .AddBonus(new OfficeQualityBonus(new [] {0, 1, 2, 3, 4}, 0.25f))
+            .AddDescription("Increases office morale by 10%\nIncreases all project quality factors by 25%"), 
+    };
+
     //Properties
 
 
@@ -92,6 +122,7 @@ public class OfficeFeature
     public int Size;
     public int UpkeepCost;
     public List<OfficeBonus> Bonuses;
+    public string BonusDescription;
 
     //Private Fields
 
@@ -108,6 +139,12 @@ public class OfficeFeature
         return this;
     }
 
+    public OfficeFeature AddDescription(string desc)
+    {
+        BonusDescription = desc;
+        return this;
+    }
+
     public void ApplyBonuses(Office office)
     {
         foreach(OfficeBonus bonus in Bonuses)
@@ -121,24 +158,25 @@ public class OfficeFeature
     }
 }
 
-[Serializable]
 public class OfficeBonus
 {
     public UnityAction<Office> OnAdd, OnRemove;
+
+    public OfficeBonus() { }
 }
 
-public class IncreaseMoraleFactor : OfficeBonus
+public class OfficeMoraleBonus : OfficeBonus
 {
-    public IncreaseMoraleFactor(float increaseBy)
+    public OfficeMoraleBonus(float increaseBy)
     {
         OnAdd = x => x.MoraleModifier += increaseBy;
         OnRemove = x => x.MoraleModifier -= increaseBy;
     }
 }
 
-public class IncreaseQualityFactor : OfficeBonus
+public class OfficeQualityBonus : OfficeBonus
 {
-    public IncreaseQualityFactor(int[] qualityIndices, float increaseBy)
+    public OfficeQualityBonus(IEnumerable<int> qualityIndices, float increaseBy)
     {
         foreach (int i in qualityIndices)
         {
@@ -149,9 +187,9 @@ public class IncreaseQualityFactor : OfficeBonus
     }
 }
 
-public class IncreaseSalesFactor : OfficeBonus
+public class OfficeSalesBonus : OfficeBonus
 {
-    public IncreaseSalesFactor(float increaseBy)
+    public OfficeSalesBonus(float increaseBy)
     {
         OnAdd = x => x.SalesModifier += increaseBy;
         OnRemove = x => x.SalesModifier -= increaseBy;
