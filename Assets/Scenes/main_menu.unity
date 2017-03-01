@@ -2479,7 +2479,7 @@ Prefab:
     - target: {fileID: 224000014244455820, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 120
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224000014244455820, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
@@ -2529,7 +2529,7 @@ Prefab:
     - target: {fileID: 224000011064536964, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -60
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224000011064536964, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
@@ -2539,7 +2539,7 @@ Prefab:
     - target: {fileID: 224000011064536964, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 120
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 63c1e99ccd30d1f458fb3b79500d7846, type: 2}
@@ -8697,16 +8697,23 @@ MonoBehaviour:
       Name: 
       Age: 0
       PersonGender: 0
-      Skills:
-      - Level: 1
-      - Level: 1
-      - Level: 1
-      - Level: 1
-      - Level: 1
+      ActiveContract:
+        Name: 
+        InitialPointsNeeded: 0
+        DaysToComplete: 0
+        DaysRemaining: 0
+        Payment: 0
+        ReputationReward: 0
       Birthday: 
-    activeContract:
+    activePlayerContract:
       Name: 
-      SkillPointsRemaining: 
+      InitialPointsNeeded: 0
+      DaysToComplete: 0
+      DaysRemaining: 0
+      Payment: 0
+      ReputationReward: 0
+    activeCompanyContract:
+      Name: 
       InitialPointsNeeded: 0
       DaysToComplete: 0
       DaysRemaining: 0
@@ -11383,16 +11390,23 @@ MonoBehaviour:
       Name: 
       Age: 0
       PersonGender: 0
-      Skills:
-      - Level: 1
-      - Level: 1
-      - Level: 1
-      - Level: 1
-      - Level: 1
+      ActiveContract:
+        Name: 
+        InitialPointsNeeded: 0
+        DaysToComplete: 0
+        DaysRemaining: 0
+        Payment: 0
+        ReputationReward: 0
       Birthday: 
-    activeContract:
+    activePlayerContract:
       Name: 
-      SkillPointsRemaining: 
+      InitialPointsNeeded: 0
+      DaysToComplete: 0
+      DaysRemaining: 0
+      Payment: 0
+      ReputationReward: 0
+    activeCompanyContract:
+      Name: 
       InitialPointsNeeded: 0
       DaysToComplete: 0
       DaysRemaining: 0

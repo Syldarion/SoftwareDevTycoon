@@ -43,7 +43,7 @@ public class JobManager : Singleton<JobManager>
     {
         Instance = this;
 
-        SkillRequirementFilters = new int[5];
+        SkillRequirementFilters = new int[SkillInfo.COUNT];
         for (int i = 0; i < 5; i++)
         {
             SkillRequirementFilters[i] = Character.MyCharacter.Skills[i].Level;
@@ -196,8 +196,9 @@ public class JobManager : Singleton<JobManager>
                 && !list_item.ListItemJob.CurrentTitle.Name.Contains(JobTitleFilter.text));
             if (JobSalaryFilter.text != string.Empty && list_item.ListItemJob.Salary < int.Parse(JobSalaryFilter.text))
                 keep_active = false;
-            for (int i = 0; i < 5; i++)
-                if (list_item.ListItemJob.CurrentTitle.SkillRequirements[i] > SkillRequirementFilters[i])
+            SkillList job_reqs = list_item.ListItemJob.CurrentTitle.SkillRequirements;
+            for (int i = 0; i < job_reqs.Length; i++)
+                if (job_reqs[i] > SkillRequirementFilters[(int)job_reqs[i].Skill])
                     keep_active = false;
             list_item.gameObject.SetActive(keep_active);
         }

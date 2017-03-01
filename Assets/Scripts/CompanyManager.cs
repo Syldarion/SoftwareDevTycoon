@@ -2,11 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Boo.Lang.Environments;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CompanyManager : Singleton<CompanyManager>
 {
+    public const int EMPLOYEES_TO_GENERATE = 5;
+    public const int OFFICES_TO_GENERATE = 3;
+
     [Header("New Company UI")]
     public CanvasGroup NewCompanyPanel;
     public InputField CompanyNameInput;
@@ -31,19 +36,17 @@ public class CompanyManager : Singleton<CompanyManager>
 
     [Header("Office Detail UI")]
     public Text OfficeDetailLocation;
-    public Text OfficeDetailBuildingCount;
     public Text OfficeDetailUpkeepCost;
     public Text OfficeDetailBonuses;
     public ProgressBar OfficeDetailRemainingSpace;
-    public Button OfficeAddBuildingButton;
+    public Button OfficeAddFeatureButton;
     public Button OfficeSellButton;
     public Button OfficeBuyButton;
 
     [Header("Employee Detail UI")]
     public Text EmployeeDetailNameAge;
     public Image EmployeeDetailGender;
-    public Text EmployeeDetailLocation;
-    public Text[] EmployeeDetailSkillLevels;
+    public Text EmployeeDetailSkillLevels;
     public Text EmployeeDetailTitle;
     public Text EmployeeDetailPay;
     public Text EmployeeDetailHireDate;
@@ -51,15 +54,15 @@ public class CompanyManager : Singleton<CompanyManager>
     public Button EmployeeHireButton;
     public Button EmployeeFireButton;
     public Button EmployeeTrainButton;
-    
-    private Office selectedOffice;
-    private Employee selectedEmployee;
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
-        Instance = this;
-        selectedOffice = null;
-        selectedEmployee = null;
+
     }
 
     void Update()
@@ -74,6 +77,7 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenNewCompanyPanel()
     {
+        if(Company.MyCompany != null) return;
         SDTUIController.Instance.OpenCanvas(NewCompanyPanel);
     }
 
@@ -84,14 +88,24 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenCompanyOfficesPanel()
     {
+        if(Company.MyCompany == null) return;
+
         foreach (Transform child in OfficeList)
             Destroy(child.gameObject);
+        for(int i = 0; i < OFFICES_TO_GENERATE; i++)
+        {
+            var new_office_item = Instantiate(CompanyOfficeItemPrefab);
+            new_office_item.PopulateData(Office.GenerateOffice());
+            new_office_item.transform.SetParent(OfficeList, false);
+        }
         foreach (Office office in Company.MyCompany.CompanyOffices)
         {
             var new_office_item = Instantiate(CompanyOfficeItemPrefab);
             new_office_item.PopulateData(office);
             new_office_item.transform.SetParent(OfficeList, false);
         }
+
+        PopulateOfficeDetail(Company.MyCompany.CompanyOffices[0]);
 
         SDTUIController.Instance.OpenCanvas(OfficesPanel);
     }
@@ -103,8 +117,16 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenCompanyEmployeesPanel()
     {
+        if (Company.MyCompany == null) return;
+
         foreach (Transform child in EmployeeList)
             Destroy(child.gameObject);
+        for(int i = 0; i < EMPLOYEES_TO_GENERATE; i++)
+        {
+            var new_employee_item = Instantiate(EmployeeItemPrefab);
+            new_employee_item.PopulateData(Employee.GenerateEmployee());
+            new_employee_item.transform.SetParent(EmployeeList, false);
+        }
         foreach (Employee employee in Company.MyCompany.EmployeeList())
         {
             var new_employee_item = Instantiate(EmployeeItemPrefab);
@@ -123,61 +145,68 @@ public class CompanyManager : Singleton<CompanyManager>
     public void PopulateOfficeDetail(Office office)
     {
         if (office == null) return;
+        bool is_company_office = Company.MyCompany.CompanyOffices.Contains(office);
 
         OfficeDetailLocation.text = string.Format("Office Location\n{0}", office.OfficeLocation.Name);
-        //OfficeDetailBuildingCount.text = office.Buildings.Count.ToString();
-        OfficeDetailUpkeepCost.text = office.TotalUpkeepCost.ToString("C");
-        //office building bonuses, once they're implemented
-
+        OfficeDetailUpkeepCost.text = string.Format("Upkeep: ${0}", office.TotalUpkeepCost);
+        StringBuilder bonus_string_builder = new StringBuilder("Office Bonuses\n");
+        foreach(OfficeFeature feature in office.Features)
+            bonus_string_builder.AppendLine(feature.BonusDescription);
+        OfficeDetailBonuses.text = bonus_string_builder.ToString();
         float space_percentage = (float)office.RemainingSpace / office.Space;
         string space_string = string.Format("{0} / {1}", office.RemainingSpace, office.Space);
         OfficeDetailRemainingSpace.SetProgress(space_percentage);
         OfficeDetailRemainingSpace.SetBarText(space_string, true);
 
-        OfficeAddBuildingButton.gameObject.SetActive(office.RemainingSpace > 0);
+        OfficeAddFeatureButton.gameObject.SetActive(is_company_office && office.RemainingSpace > 0);
         OfficeBuyButton.GetComponentInChildren<Text>().text = string.Format("Buy Office: ${0}", office.PurchasePrice);
-        OfficeBuyButton.gameObject.SetActive(!Company.MyCompany.CompanyOffices.Contains(office));
+        OfficeBuyButton.gameObject.SetActive(!is_company_office);
         OfficeSellButton.GetComponentInChildren<Text>().text = string.Format("Sell Office: ${0}", office.SellPrice);
-        OfficeSellButton.gameObject.SetActive(Company.MyCompany.CompanyOffices.Contains(office) &&
-                                        Company.MyCompany.CompanyOffices.Count > 1);
+        OfficeSellButton.gameObject.SetActive(is_company_office && Company.MyCompany.CompanyOffices.Count > 1);
     }
 
     public void PopulateEmployeeDetail(Employee employee)
     {
         if (employee == null) return;
-
         bool works_for_company = Company.MyCompany.EmployeeList().Contains(employee);
 
         EmployeeDetailNameAge.text = string.Format(
             "{0} ({1})", employee.Name, employee.Age);
         //set employee gender image after you make images for the slot
-        EmployeeDetailLocation.text = employee.CurrentLocation.Name;
-        for (int i = 0; i < employee.Skills.Length; i++)
-            EmployeeDetailSkillLevels[i].text = employee.Skills[i].Level.ToString();
+        EmployeeDetailSkillLevels.text = string.Join("\n",
+            employee.Skills.Skills.Select(x => {
+                StringBuilder skill_builder = new StringBuilder();
+                skill_builder.Append(SkillInfo.SKILL_NAME[(int)x.Skill]);
+                int spaces = 18 - SkillInfo.SKILL_NAME[(int)x.Skill].Length;
+                skill_builder.Append(' ', spaces);
+                skill_builder.Append(x.Level);
+                return skill_builder.ToString();
+            }).ToArray());
         EmployeeDetailTitle.text = employee.CurrentTitle.Name;
         EmployeeDetailPay.text = employee.Pay.ToString("C");
-        EmployeeDetailHireDate.text = DateTime.FromBinary(employee.HireDateBinary).ToLongDateString();
+        EmployeeDetailHireDate.text = works_for_company
+                                          ? DateTime.FromBinary(employee.HireDateBinary).ToLongDateString()
+                                          : "N/A";
         //EmployeeDetailPerformance.text
-        EmployeeHireButton.gameObject.SetActive(!works_for_company);
         EmployeeHireButton.onClick.AddListener(() => Company.MyCompany.HireEmployee(employee));
-        EmployeeFireButton.gameObject.SetActive(works_for_company);
+        EmployeeHireButton.gameObject.SetActive(!works_for_company);
         EmployeeFireButton.onClick.AddListener(() => Company.MyCompany.FireEmployee(employee));
-        EmployeeTrainButton.gameObject.SetActive(works_for_company);
+        EmployeeFireButton.gameObject.SetActive(works_for_company);
         EmployeeTrainButton.onClick.AddListener(() => Company.MyCompany.TrainEmployee(employee));
+        EmployeeTrainButton.gameObject.SetActive(works_for_company);
     }
 
     public void UpdateNewCompanyCostText()
     {
         int new_office_space;
         if(!int.TryParse(FirstOfficeSpaceInput.text, out new_office_space)) new_office_space = 0;
-        new_office_space = Math.Abs(new_office_space);
+        new_office_space = Mathf.Clamp(Math.Abs(new_office_space), Office.MIN_OFFICE_SPACE, Office.MAX_OFFICE_SPACE);
+        FirstOfficeSpaceInput.text = new_office_space.ToString();
 
         int total_cost = Company.BASE_COMPANY_COST + (Office.COST_PER_SPACE * new_office_space);
 
         NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
-
-        Debug.Log(string.Format("Player: {0}, Company: {1}", Character.MyCharacter.Money, total_cost));
-
+        
         CreateCompanyButton.onClick.RemoveListener(CreateCompany);
         if(total_cost <= Character.MyCharacter.Money && total_cost != 0)
             CreateCompanyButton.onClick.AddListener(CreateCompany);
@@ -187,7 +216,12 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void CreateCompany()
     {
+        if(Character.MyCharacter.ActiveContract != null)
+            Character.MyCharacter.ActiveContract.CancelContract();
+        if(Job.MyJob != null)
+            Job.MyJob.FirePlayer();
         Company.MyCompany = Company.CreateNewCompany(CompanyNameInput.text, int.Parse(FirstOfficeSpaceInput.text));
+        CloseNewCompanyPanel();
     }
 
     public void ConfirmBankruptcy()
@@ -199,17 +233,5 @@ public class CompanyManager : Singleton<CompanyManager>
                                                      DialogueBox.Instance.Cleanup();
                                                  },
                                                  () => { DialogueBox.Instance.Cleanup(); });
-    }
-
-    public void SelectOffice(Office office)
-    {
-        selectedOffice = office;
-        PopulateOfficeDetail(selectedOffice);
-    }
-
-    public void SelectEmployee(Employee employee)
-    {
-        selectedEmployee = employee;
-        PopulateEmployeeDetail(selectedEmployee);
     }
 }

@@ -94,15 +94,14 @@ public class NewCharacterCreator : MonoBehaviour
                 ? DateTime.Today.Year - birthday.Year
                 : DateTime.Today.Year - birthday.Year - 1,
             PersonGender = (Person.Gender)GenderSlider.value,
-            Reputation = 50,
             Birthday = birthday.ToString("dd-MM-yyyy"),
             CurrentLocation = Location.Locations.ElementAt(StartingLocationDropdown.value),
-            Exhaustion = 0
         };
 
         new_character.AdjustMoney(5000);
+        new_character.AdjustReputation(50);
 
-        for (int i = 0; i < SkillAllocators.Count; i++)
+        for (int i = 0; i < SkillInfo.COUNT; i++)
             new_character.Skills[i].Level = SkillAllocators[i].CurrentSkillLevel;
 
         SceneManager.LoadScene("in_game");

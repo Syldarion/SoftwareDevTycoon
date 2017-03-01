@@ -41,11 +41,12 @@ public class JobListItem : MonoBehaviour
             job.CurrentTitle.Name);
         JobSalaryText.text = job.Salary.ToString("C0");
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < ListItemJob.CurrentTitle.SkillRequirements.Length; i++)
         {
-            JobSkillRequirementBars[i].rectTransform.sizeDelta =
-                new Vector2(MaxSkillReqBarSize.x * (job.CurrentTitle.SkillRequirements[i] / 10.0f), 0.0f);
-            JobSkillRequirementTexts[i].text = job.CurrentTitle.SkillRequirements[i].ToString();
+            int index = (int)ListItemJob.CurrentTitle.SkillRequirements[i].Skill;
+            JobSkillRequirementBars[index].rectTransform.sizeDelta =
+                new Vector2(MaxSkillReqBarSize.x * (job.CurrentTitle.SkillRequirements[(Skill)index].Level / 10.0f), 0.0f);
+            JobSkillRequirementTexts[i].text = job.CurrentTitle.SkillRequirements[(Skill)index].ToString();
         }
     }
 

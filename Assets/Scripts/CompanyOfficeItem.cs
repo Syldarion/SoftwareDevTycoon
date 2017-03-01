@@ -23,11 +23,12 @@ public class CompanyOfficeItem : MonoBehaviour, IPointerDownHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        CompanyManager.Instance.SelectOffice(ItemOffice);
+        CompanyManager.Instance.PopulateOfficeDetail(ItemOffice);
     }
 
     public void PopulateData(Office office)
     {
+        ItemOffice = office;
         LocationText.text = string.Format("Location\n{0}", office.OfficeLocation.Name);
         //BuildingCountText.text = office.Buildings.Count.ToString();
         UpkeepCostText.text = office.TotalUpkeepCost.ToString("C");

@@ -1,24 +1,18 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-[System.Serializable]
+[Serializable]
 public class Project
 {
     public const int VALUE_PER_QUALITY_LEVEL = 100;
     public const int PROJECT_SELL_MONTHS = 24;
 
     public string Name;
-
-    public int TotalQuality { get { return QualityLevels.Sum(x => x.Level); } }
-    public SkillLevel[] QualityLevels = {
-        new SkillLevel(Skill.Programming, 0), 
-        new SkillLevel(Skill.UserInterfaces, 0), 
-        new SkillLevel(Skill.Databases, 0), 
-        new SkillLevel(Skill.Networking, 0), 
-        new SkillLevel(Skill.WebDevelopment, 0),
-    };
+    
+    public SkillList QualityLevels;
 
     private int totalPayout;
     private int payoutPerMonth;
@@ -31,18 +25,14 @@ public class Project
         Name = name;
     }
 
-    public void ApplyWork(Skill applySkill, int applyAmount)
+    public void ApplyWork(SkillList work)
     {
-        if(applyAmount < 0) return;
-
-        SkillLevel apply_to = QualityLevels.FirstOrDefault(x => x.Skill == applySkill);
-
-        apply_to.Level += applyAmount;
+        QualityLevels += work;
     }
 
     public void CompleteProject()
     {
-        totalPayout = Mathf.Abs(VALUE_PER_QUALITY_LEVEL * TotalQuality);
+        totalPayout = Mathf.Abs(VALUE_PER_QUALITY_LEVEL * QualityLevels.Sum());
 
         payoutPerMonth = Mathf.FloorToInt((float)totalPayout / PROJECT_SELL_MONTHS);
 
@@ -59,7 +49,7 @@ public class Project
 
     public float[] GetQualityPercentages()
     {
-        int total = TotalQuality;
+        int total = QualityLevels.Sum();
         float[] results = new float[QualityLevels.Length];
         for(int i = 0; i < QualityLevels.Length; i++)
             results[i] = (float)QualityLevels[i].Level / total;

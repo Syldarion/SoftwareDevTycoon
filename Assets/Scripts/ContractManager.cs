@@ -15,8 +15,6 @@ public class ContractManager : Singleton<ContractManager>
     public CanvasGroup ContractWorkPanel;
     public GameObject ContractObjectPrefab;
 
-    public Contract ActiveContract { get; private set; }
-
     private bool onCooldown;
 
     void Awake()

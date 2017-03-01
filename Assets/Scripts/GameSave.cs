@@ -11,7 +11,9 @@ public class GameSave
     [SerializeField]
     private Character myCharacter;
     [SerializeField]
-    private Contract activeContract;
+    private Contract activePlayerContract;
+    [SerializeField]
+    private Contract activeCompanyContract;
     [SerializeField]
     private string dateString;
     [SerializeField]
@@ -48,7 +50,8 @@ public class GameSave
 
     private void LoadContractInfo()
     {
-        Contract.SetActiveContract(activeContract);
+        Contract.SetPlayerActiveContract(activePlayerContract);
+        Contract.SetCompanyActiveContract(activeCompanyContract);
     }
 
     private void LoadTimeInfo()
@@ -80,7 +83,8 @@ public class GameSave
     public void SaveGame()
     {
         myCharacter = Character.MyCharacter;
-        activeContract = Contract.ActiveContract;
+        activePlayerContract = Character.MyCharacter.ActiveContract;
+        activeCompanyContract = Company.MyCompany.ActiveContract;
         dateString = TimeManager.DateString;
         activeApplications = JobManager.Instance.ActiveApplications.ToArray();
         myJob = Job.MyJob;

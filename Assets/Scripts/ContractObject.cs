@@ -42,10 +42,10 @@ public class ContractObject : MonoBehaviour
 
         NameText.text = contract.Name;
 
-        for (int i = 0; i < SkillsTexts.Length; i++)
+        for (int i = 0; i < contract.SkillPointsRemaining.Length; i++)
         {
-            SkillsTexts[i].transform.parent.gameObject.SetActive(contract.SkillPointsRemaining[i] > 0);
-            SkillsTexts[i].text = contract.SkillPointsRemaining[i].ToString();
+            SkillsTexts[(int)contract.SkillPointsRemaining[i].Skill].transform.parent.gameObject.SetActive(true);
+            SkillsTexts[(int)contract.SkillPointsRemaining[i].Skill].text = contract.SkillPointsRemaining[i].Level.ToString();
         }
 
         PayText.text = contract.Payment.ToString("C");
@@ -54,12 +54,6 @@ public class ContractObject : MonoBehaviour
 
     public void OnAcceptClick()
     {
-        if (ContractManager.Instance.ActiveContract != null)
-        {
-            //we SHOULD ask the player if they wanna cancel the old one
-            ContractManager.Instance.ActiveContract.CancelContract();
-        }
-
         ObjectContract.AcceptContract();
         ContractManager.Instance.CloseContractForm();
     }

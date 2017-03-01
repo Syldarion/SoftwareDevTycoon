@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
+using Random = UnityEngine.Random;
 
 public enum CharacterGender
 {
@@ -26,34 +27,26 @@ public class Person
     public Gender PersonGender;
     public Location CurrentLocation;
 
-    public SkillLevel[] Skills =
-    {
+    public SkillList Skills = new SkillList(new[] {
         new SkillLevel(Skill.Programming, 1),
         new SkillLevel(Skill.UserInterfaces, 1),
         new SkillLevel(Skill.Databases, 1),
         new SkillLevel(Skill.Networking, 1),
         new SkillLevel(Skill.WebDevelopment, 1),
-    };
+    });
 }
 
 [Serializable]
 public class Character : Person
 {
     public static Character MyCharacter;
-    
+
+    public Contract ActiveContract;
     public string Birthday;
 
     public int Money { get; private set; }
 
-    public int Reputation
-    {
-        get { return reputation; }
-        set { reputation = Mathf.Clamp(value, 0, 100); }
-    }
-    private int reputation;
-
-    public int Exhaustion { get {return exhaustion;} set { exhaustion = Mathf.Clamp(value, 0, 5); } }
-    private int exhaustion;
+    public int Reputation { get; private set; }
 
     public Character()
     {
@@ -63,15 +56,28 @@ public class Character : Person
     public void SetupEvents()
     {
         TimeManager.PerDayEvent.RemoveListener(CheckBirthday);
-        TimeManager.PerDayEvent.RemoveListener(Sleep);
 
         TimeManager.PerDayEvent.AddListener(CheckBirthday);
-        TimeManager.PerDayEvent.AddListener(Sleep);
     }
 
     public void AdjustMoney(int adjustment)
     {
-        Money += adjustment;
+        Money = Mathf.Clamp(Money + adjustment, -int.MaxValue, int.MaxValue);
+    }
+
+    public void AdjustReputation(int adjustment)
+    {
+        Reputation = Mathf.Clamp(Reputation + adjustment, 0, 100);
+    }
+
+    public void WorkOnContract()
+    {
+        SkillList work = new SkillList();
+        for(int i = 0; i < work.Length; i++)
+            work[i] = Skills[i] + Random.Range(-1, 2);
+        
+        if(ActiveContract.ApplyWork(work))
+            Contract.SetPlayerActiveContract(null);
     }
 
     public void CheckBirthday()
@@ -85,12 +91,5 @@ public class Character : Person
         {
             Age++;
         }
-    }
-
-    public void Sleep()
-    {
-        int sleep = 8;
-        if (sleep < 6) Exhaustion++;
-        else if (sleep >= 8) Exhaustion--;
     }
 }

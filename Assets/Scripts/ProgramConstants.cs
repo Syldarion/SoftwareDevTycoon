@@ -121,35 +121,42 @@ public static class JobTitles
     {
         new []
         {
-            new JobTitle("Junior Programmer", new[] {4, 0, 0, 0, 0}),
-            new JobTitle("Mid-Level Programmer", new[] {6, 0, 0, 0, 0}),
-            new JobTitle("Senior Programmer", new[] {8, 0, 0, 0, 0}),
+            new JobTitle("Junior Programmer", new SkillList(new []{new SkillLevel(Skill.Programming, 4)})),
+            new JobTitle("Mid-Level Programmer", new SkillList(new []{new SkillLevel(Skill.Programming, 6)})),
+            new JobTitle("Senior Programmer", new SkillList(new []{new SkillLevel(Skill.Programming, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Designer", new[] {0, 4, 0, 0, 0}),
-            new JobTitle("Mid-Level Designer", new[] {0, 6, 0, 0, 0}),
-            new JobTitle("Senior Designer", new[] {0, 8, 0, 0, 0}),
+            new JobTitle("Junior Designer", new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 4)})),
+            new JobTitle("Mid-Level Designer", new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 6)})),
+            new JobTitle("Senior Designer", new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Database Administrator", new[] {0, 0, 4, 0, 0}),
-            new JobTitle("Mid-Level Database Administrator", new[] {0, 0, 6, 0, 0}),
-            new JobTitle("Senior Database Administrator", new[] {0, 0, 8, 0, 0}),
+            new JobTitle("Junior Database Administrator", new SkillList(new []{new SkillLevel(Skill.Databases, 4)})),
+            new JobTitle("Mid-Level Database Administrator", new SkillList(new []{new SkillLevel(Skill.Databases, 6)})),
+            new JobTitle("Senior Database Administrator", new SkillList(new []{new SkillLevel(Skill.Databases, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Network Administrator", new[] {0, 0, 0, 4, 0}),
-            new JobTitle("Mid-Level Network Administrator", new[] {0, 0, 0, 6, 0}),
-            new JobTitle("Senior Network Administrator", new[] {0, 0, 0, 8, 0}),
+            new JobTitle("Junior Network Administrator", new SkillList(new []{new SkillLevel(Skill.Networking, 4)})),
+            new JobTitle("Mid-Level Network Administrator", new SkillList(new []{new SkillLevel(Skill.Networking, 6)})),
+            new JobTitle("Senior Network Administrator", new SkillList(new []{new SkillLevel(Skill.Networking, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Web Developer", new[] {0, 0, 0, 0, 4}),
-            new JobTitle("Mid-Level Web Developer", new[] {0, 0, 0, 0, 6}),
-            new JobTitle("Senior Web Developer", new[] {0, 0, 0, 0, 8}),
+            new JobTitle("Junior Web Developer", new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 4)})),
+            new JobTitle("Mid-Level Web Developer", new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 6)})),
+            new JobTitle("Senior Web Developer", new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 8)})),
         }
     };
+
+    public static JobTitle GetRandomTitle()
+    {
+        int job_type = Random.Range(0, AllTitles.Length);
+        int specific_job = Random.Range(0, AllTitles[job_type].Length);
+        return AllTitles[job_type][specific_job];
+    }
 }
 
 public static class PersonNames

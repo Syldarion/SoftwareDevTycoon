@@ -4,7 +4,7 @@ using System.Collections;
 
 public class SkillAllocationControl : MonoBehaviour
 {
-    public Skill.SkillType SkillType;
+    public Skill SkillType;
     public Text SkillNameText;
     public RectTransform SkillLevelBarTransform;
     public Text SkillLevelText;
@@ -20,7 +20,7 @@ public class SkillAllocationControl : MonoBehaviour
 
     void Awake()
     {
-        SkillNameText.text = Skill.GetSkillFromEnum(SkillType).Name;
+        SkillNameText.text = SkillInfo.SKILL_NAME[(int)SkillType];
         CurrentSkillLevel = 1;
 
         MaxBarSize = SkillLevelBarTransform.sizeDelta;

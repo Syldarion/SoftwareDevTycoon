@@ -33,7 +33,9 @@ public class InformationPanelManager : Singleton<InformationPanelManager>
 
     public void UpdateActiveContract()
     {
-        Contract active_contract = Contract.ActiveContract;
+        Contract active_contract = Company.MyCompany == null 
+            ? Character.MyCharacter.ActiveContract
+            : Company.MyCompany.ActiveContract;
         if (active_contract == null)
         {
             HideActiveContract();
@@ -75,6 +77,7 @@ public class InformationPanelManager : Singleton<InformationPanelManager>
     {
         GameObject new_message = Instantiate(MessageTemplatePrefab);
         new_message.transform.SetParent(MessagePanel, false);
+        new_message.SetActive(true);
         Text message_text = new_message.GetComponentInChildren<Text>();
         if (message_text != null)
             message_text.text = message;

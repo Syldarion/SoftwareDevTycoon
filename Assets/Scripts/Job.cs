@@ -10,22 +10,20 @@ public class JobTitle
 {
     public string Name { get; private set; }
 
-    public int[] SkillRequirements { get; private set; }
+    public SkillList SkillRequirements { get; private set; }
 
     private JobTitle nextLevel;
 
-    public JobTitle(string name, int[] skillReqs)
+    public JobTitle(string name, SkillList reqs)
     {
         Name = name;
-        SkillRequirements = new int[5];
-        for (int i = 0; i < skillReqs.Length && i < 5; i++)
-            SkillRequirements[i] = Mathf.Abs(skillReqs[i]);
+        SkillRequirements = reqs;
     }
 
     public bool MeetsRequirements(Person worker)
     {
-        for(int i = 0; i < 5; i++)
-            if (worker.Skills[i].Level < SkillRequirements[i])
+        for(int i = 0; i < SkillRequirements.Length; i++)
+            if (worker.Skills[SkillRequirements[i].Skill] < SkillRequirements[i])
                 return false;
         return true;
     }
@@ -39,7 +37,7 @@ public class JobTitle
     public JobTitle GetNextLevel() { return nextLevel; }
 }
 
-[System.Serializable]
+[Serializable]
 public class JobApplication
 {
     public Job AppliedJob;
@@ -67,7 +65,7 @@ public class JobApplication
 
         int base_accept_chance = 75;
         for (int i = 0; i < 5; i++)
-            base_accept_chance += Character.MyCharacter.Skills[i].Level - AppliedJob.CurrentTitle.SkillRequirements[i];
+            base_accept_chance += Character.MyCharacter.Skills[i].Level - AppliedJob.CurrentTitle.SkillRequirements[i].Level;
 
         Accepted = Random.Range(0, 101) < base_accept_chance;
     }

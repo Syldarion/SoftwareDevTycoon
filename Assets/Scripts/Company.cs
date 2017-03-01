@@ -22,6 +22,7 @@ public class Company
     
     //Public Fields
     public Project CompanyProject;
+    public Contract ActiveContract;
     public List<Office> CompanyOffices;
 
     //Private Fields
@@ -50,9 +51,11 @@ public class Company
 
         new_company.AddOffice(init_office);
 
-        int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * initSpace);
+        int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * init_office.Space);
 
         Character.MyCharacter.AdjustMoney(-new_company_cost);
+        new_company.AdjustFunds(Character.MyCharacter.Money);
+        Character.MyCharacter.AdjustMoney(-Character.MyCharacter.Money);
 
         return new_company;
     }
@@ -137,12 +140,12 @@ public class Company
 
     public void TrainEmployee(Employee employee)
     {
-        int skill_sum = Mathf.Clamp(employee.Skills.Sum(x => x.Level), 1, int.MaxValue);
+        int skill_sum = Mathf.Clamp(employee.Skills.Sum(), 1, int.MaxValue);
         int training_cost = TRAINING_COST_MULTIPLIER * skill_sum;
 
         AdjustFunds(-training_cost);
 
-        for (int i = 0; i < employee.Skills.Length; i++)
+        for (int i = 0; i < SkillInfo.COUNT; i++)
         {
             float skill_makeup_percentage = (float)employee.Skills[i].Level / skill_sum;
             int amount_to_increase = Mathf.FloorToInt(10.0f * skill_makeup_percentage * Random.Range(0.5f, 2.0f)) + 1;
@@ -150,21 +153,37 @@ public class Company
         }
     }
 
-    public void WorkOnProject()
+    public void WorkOnActiveContract()
     {
-        int[] work_sums = new int[employees[0].Skills.Length];
-        for(int i = 0; i < work_sums.Length; i++)
+        SkillList work_sums = new SkillList();
+        for (int i = 0; i < SkillInfo.COUNT; i++)
         {
-            foreach(Office office in CompanyOffices)
+            foreach (Office office in CompanyOffices)
             {
-                int office_work_sum = office.Employees.Sum(x => x.Skills[i].Level);
-                office_work_sum = Mathf.CeilToInt(office_work_sum * (1.0f + office.QualityBonuses[i]));
-                work_sums[i] = office_work_sum;
+                float office_work_sum = office.Employees.Sum(x => x.Skills[i].Level * (x.Morale / 70.0f));
+                office_work_sum = office_work_sum * (1.0f + office.QualityBonuses[i]);
+                work_sums[(Skill)i] += Mathf.CeilToInt(office_work_sum);
             }
         }
-        
-        for(int i = 0; i < work_sums.Length; i++)
-            CompanyProject.ApplyWork(employees[0].Skills[i].Skill, work_sums[i]);
+
+        if(ActiveContract.ApplyWork(work_sums))
+            Contract.SetCompanyActiveContract(null);
+    }
+
+    public void WorkOnProject()
+    {
+        SkillList work_sums = new SkillList();
+        for (int i = 0; i < SkillInfo.COUNT; i++)
+        {
+            foreach (Office office in CompanyOffices)
+            {
+                float office_work_sum = office.Employees.Sum(x => x.Skills[i].Level * (x.Morale / 70.0f));
+                office_work_sum = office_work_sum * (1.0f + office.QualityBonuses[i]);
+                work_sums[(Skill)i] += Mathf.CeilToInt(office_work_sum);
+            }
+        }
+
+        CompanyProject.ApplyWork(work_sums);
     }
 
     //Getters / Setters
