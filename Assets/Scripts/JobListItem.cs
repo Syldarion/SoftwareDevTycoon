@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Linq;
 using UnityEngine.Events;
 
 public class JobListItem : MonoBehaviour
@@ -9,15 +10,8 @@ public class JobListItem : MonoBehaviour
 
     public Text CompanyTitleText;
     public Text JobSalaryText;
-    public Image ExpandImage;
-    public RectTransform AllInfoPanel;
-    public Image[] JobSkillRequirementBars;
-    public Text[] JobSkillRequirementTexts;
+    public Text SkillRequirementText;
     public Button ActionButton;
-
-    public Vector2 MaxSkillReqBarSize;
-
-    private bool infoOpen;
 
     void Start()
     {
@@ -33,21 +27,13 @@ public class JobListItem : MonoBehaviour
     {
         ListItemJob = job;
 
-        MaxSkillReqBarSize = JobSkillRequirementBars[0].rectTransform.sizeDelta;
-
         CompanyTitleText.text = string.Format(
             "{0} - {1}",
             "Default Company",
             job.CurrentTitle.Name);
         JobSalaryText.text = job.Salary.ToString("C0");
 
-        for (int i = 0; i < ListItemJob.CurrentTitle.SkillRequirements.Length; i++)
-        {
-            int index = (int)ListItemJob.CurrentTitle.SkillRequirements[i].Skill;
-            JobSkillRequirementBars[index].rectTransform.sizeDelta =
-                new Vector2(MaxSkillReqBarSize.x * (job.CurrentTitle.SkillRequirements[(Skill)index].Level / 10.0f), 0.0f);
-            JobSkillRequirementTexts[i].text = job.CurrentTitle.SkillRequirements[(Skill)index].ToString();
-        }
+        SkillRequirementText.text = job.CurrentTitle.SkillRequirements.Info(" | ", true);
     }
 
     public void SetupActionButton(Color buttonColor, string buttonText, UnityAction buttonAction)
@@ -55,17 +41,5 @@ public class JobListItem : MonoBehaviour
         ActionButton.colors = ColorBlocks.GetColorBlock(buttonColor);
         ActionButton.GetComponentInChildren<Text>().text = buttonText;
         ActionButton.onClick.AddListener(buttonAction);
-    }
-
-    public void OnExpandClick()
-    {
-        infoOpen = !infoOpen;
-        AllInfoPanel.gameObject.SetActive(infoOpen);
-        ExpandImage.rectTransform.rotation = Quaternion.Euler(0.0f, 0.0f, infoOpen ? 0.0f : 180.0f);
-    }
-
-    public void OnApplyClick()
-    {
-        
     }
 }

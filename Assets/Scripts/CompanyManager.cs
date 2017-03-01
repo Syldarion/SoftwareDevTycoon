@@ -26,12 +26,18 @@ public class CompanyManager : Singleton<CompanyManager>
 
     [Header("Company Offices UI")]
     public CanvasGroup OfficesPanel;
-    public RectTransform OfficeList;
+    public RectTransform CurrentOfficesList;
+    public RectTransform OfficesForSaleList;
+    public Image CurrentOfficesExpandImage;
+    public Image OfficesForSaleExpandImage;
     public CompanyOfficeItem CompanyOfficeItemPrefab;
 
     [Header("Company Employees UI")]
     public CanvasGroup EmployeesPanel;
-    public RectTransform EmployeeList;
+    public RectTransform CurrentEmployeesList;
+    public RectTransform AvailableEmployeesList;
+    public Image CurrentEmployeesExpandImage;
+    public Image AvailableEmployeesExpandImage;
     public EmployeeItem EmployeeItemPrefab;
 
     [Header("Office Detail UI")]
@@ -54,6 +60,11 @@ public class CompanyManager : Singleton<CompanyManager>
     public Button EmployeeHireButton;
     public Button EmployeeFireButton;
     public Button EmployeeTrainButton;
+
+    private bool currentOfficesSectionOpen = true;
+    private bool officesForSaleSectionOpen = true;
+    private bool currentEmployeesSectionOpen = true;
+    private bool availableEmployeesSectionOpen = true;
 
     void Awake()
     {
@@ -90,19 +101,21 @@ public class CompanyManager : Singleton<CompanyManager>
     {
         if(Company.MyCompany == null) return;
 
-        foreach (Transform child in OfficeList)
+        foreach (Transform child in CurrentOfficesList)
+            Destroy(child.gameObject);
+        foreach(Transform child in OfficesForSaleList)
             Destroy(child.gameObject);
         for(int i = 0; i < OFFICES_TO_GENERATE; i++)
         {
             var new_office_item = Instantiate(CompanyOfficeItemPrefab);
             new_office_item.PopulateData(Office.GenerateOffice());
-            new_office_item.transform.SetParent(OfficeList, false);
+            new_office_item.transform.SetParent(OfficesForSaleList, false);
         }
         foreach (Office office in Company.MyCompany.CompanyOffices)
         {
             var new_office_item = Instantiate(CompanyOfficeItemPrefab);
             new_office_item.PopulateData(office);
-            new_office_item.transform.SetParent(OfficeList, false);
+            new_office_item.transform.SetParent(CurrentOfficesList, false);
         }
 
         PopulateOfficeDetail(Company.MyCompany.CompanyOffices[0]);
@@ -119,21 +132,23 @@ public class CompanyManager : Singleton<CompanyManager>
     {
         if (Company.MyCompany == null) return;
 
-        foreach (Transform child in EmployeeList)
+        foreach (Transform child in CurrentEmployeesList)
+            Destroy(child.gameObject);
+        foreach(Transform child in AvailableEmployeesList)
             Destroy(child.gameObject);
         for(int i = 0; i < EMPLOYEES_TO_GENERATE; i++)
         {
             var new_employee_item = Instantiate(EmployeeItemPrefab);
             new_employee_item.PopulateData(Employee.GenerateEmployee());
-            new_employee_item.transform.SetParent(EmployeeList, false);
+            new_employee_item.transform.SetParent(AvailableEmployeesList, false);
         }
         foreach (Employee employee in Company.MyCompany.EmployeeList())
         {
             var new_employee_item = Instantiate(EmployeeItemPrefab);
             new_employee_item.PopulateData(employee);
-            new_employee_item.transform.SetParent(EmployeeList, false);
+            new_employee_item.transform.SetParent(CurrentEmployeesList, false);
         }
-
+        
         SDTUIController.Instance.OpenCanvas(EmployeesPanel);
     }
 
@@ -158,10 +173,24 @@ public class CompanyManager : Singleton<CompanyManager>
         OfficeDetailRemainingSpace.SetProgress(space_percentage);
         OfficeDetailRemainingSpace.SetBarText(space_string, true);
 
+        OfficeAddFeatureButton.onClick.RemoveAllListeners();
+        OfficeBuyButton.onClick.RemoveAllListeners();
+        OfficeSellButton.onClick.RemoveAllListeners();
+
         OfficeAddFeatureButton.gameObject.SetActive(is_company_office && office.RemainingSpace > 0);
         OfficeBuyButton.GetComponentInChildren<Text>().text = string.Format("Buy Office: ${0}", office.PurchasePrice);
+        OfficeBuyButton.onClick.AddListener(() =>
+        {
+            Company.MyCompany.AddOffice(office);
+            Company.MyCompany.AdjustFunds(-office.PurchasePrice);
+        });
         OfficeBuyButton.gameObject.SetActive(!is_company_office);
         OfficeSellButton.GetComponentInChildren<Text>().text = string.Format("Sell Office: ${0}", office.SellPrice);
+        OfficeSellButton.onClick.AddListener(() =>
+        {
+            Company.MyCompany.RemoveOffice(office);
+            Company.MyCompany.AdjustFunds(office.SellPrice);
+        });
         OfficeSellButton.gameObject.SetActive(is_company_office && Company.MyCompany.CompanyOffices.Count > 1);
     }
 
@@ -188,6 +217,10 @@ public class CompanyManager : Singleton<CompanyManager>
                                           ? DateTime.FromBinary(employee.HireDateBinary).ToLongDateString()
                                           : "N/A";
         //EmployeeDetailPerformance.text
+        EmployeeHireButton.onClick.RemoveAllListeners();
+        EmployeeFireButton.onClick.RemoveAllListeners();
+        EmployeeTrainButton.onClick.RemoveAllListeners();
+
         EmployeeHireButton.onClick.AddListener(() => Company.MyCompany.HireEmployee(employee));
         EmployeeHireButton.gameObject.SetActive(!works_for_company);
         EmployeeFireButton.onClick.AddListener(() => Company.MyCompany.FireEmployee(employee));
@@ -233,5 +266,37 @@ public class CompanyManager : Singleton<CompanyManager>
                                                      DialogueBox.Instance.Cleanup();
                                                  },
                                                  () => { DialogueBox.Instance.Cleanup(); });
+    }
+
+    public void OnExpandCurrentOfficesClick()
+    {
+        currentOfficesSectionOpen = !currentOfficesSectionOpen;
+        CurrentOfficesList.gameObject.SetActive(currentOfficesSectionOpen);
+        CurrentOfficesExpandImage.rectTransform.rotation = Quaternion.Euler(0.0f, 0.0f,
+            currentOfficesSectionOpen ? 0.0f : 180.0f);
+    }
+
+    public void OnExpandOfficesForSaleClick()
+    {
+        officesForSaleSectionOpen = !officesForSaleSectionOpen;
+        OfficesForSaleList.gameObject.SetActive(officesForSaleSectionOpen);
+        OfficesForSaleExpandImage.rectTransform.rotation = Quaternion.Euler(0.0f, 0.0f,
+            officesForSaleSectionOpen ? 0.0f : 180.0f);
+    }
+
+    public void OnExpandCurrentEmployeesClick()
+    {
+        currentEmployeesSectionOpen = !currentEmployeesSectionOpen;
+        CurrentEmployeesList.gameObject.SetActive(currentEmployeesSectionOpen);
+        CurrentEmployeesExpandImage.rectTransform.rotation = Quaternion.Euler(0.0f, 0.0f,
+            currentEmployeesSectionOpen ? 0.0f : 180.0f);
+    }
+
+    public void OnExpandAvailableEmployeesClick()
+    {
+        availableEmployeesSectionOpen = !availableEmployeesSectionOpen;
+        AvailableEmployeesList.gameObject.SetActive(availableEmployeesSectionOpen);
+        AvailableEmployeesExpandImage.rectTransform.rotation = Quaternion.Euler(0.0f, 0.0f,
+            availableEmployeesSectionOpen ? 0.0f : 180.0f);
     }
 }

@@ -96,6 +96,13 @@ public class Company
         StatusBarManager.Instance.UpdateCompanyInfo();
     }
 
+    public void RemoveOffice(Office office)
+    {
+        if(CompanyOffices.Contains(office))
+            CompanyOffices.Remove(office);
+        StatusBarManager.Instance.UpdateCompanyInfo();
+    }
+
     public void PayEmployees()
     {
         int total_payroll = employees.Aggregate(0, (current, emp) => current + emp.Pay);

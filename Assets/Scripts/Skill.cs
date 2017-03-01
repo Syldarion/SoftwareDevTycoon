@@ -73,6 +73,14 @@ public class SkillList
         return this;
     }
 
+    public string Info(string separator, bool abbreviated)
+    {
+        return string.Join(separator,
+            allSkills.Select(x => string.Format("{0}: {1}", 
+            abbreviated ? SkillInfo.SKILL_ABBR[(int)x.Skill] : SkillInfo.SKILL_NAME[(int)x.Skill], 
+            x.Level)).ToArray());
+    }
+
     [NotNull]
     public SkillLevel this[int index]
     {
@@ -96,7 +104,11 @@ public class SkillList
     [NotNull]
     public SkillLevel this[Skill skill]
     {
-        get { return allSkills.Find(x => x.Skill == skill); }
+        get
+        {
+            int index = allSkills.FindIndex(x => x.Skill == skill);
+            return index == -1 ? new SkillLevel(skill, 0) : allSkills[index];
+        }
         set
         {
             if(value == null) throw new ArgumentNullException("value");

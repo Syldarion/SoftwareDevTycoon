@@ -40,7 +40,7 @@ public class SkillAllocationControl : MonoBehaviour
 
     public void ModifySkillLevel(int modifier)
     {
-        if (RemainingPoints <= 0 || 
+        if ((RemainingPoints <= 0 && modifier > 0) || 
             (CurrentSkillLevel >= 10 && modifier > 0) || 
             (CurrentSkillLevel <= 1 && modifier < 0)) return;
 

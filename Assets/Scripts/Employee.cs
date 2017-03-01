@@ -48,7 +48,7 @@ public class Employee : Person
         new_employee.PersonGender = (Gender)Random.Range(0, Enum.GetNames(typeof(Gender)).Length);
         new_employee.Skills = new SkillList();
         for (int i = 0; i < SkillInfo.COUNT; i++)
-            new_employee.Skills[i] = title.SkillRequirements[i] + Random.Range(0, 3);
+            new_employee.Skills[(Skill)i] = title.SkillRequirements[(Skill)i] + Random.Range(0, 3);
         new_employee.Morale = 50.0f;
 
         return new_employee;

@@ -71,6 +71,8 @@ public class ConsoleManager : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.BackQuote))
         {
             SDTUIController.Instance.OpenCanvas(ConsoleCanvas);
+            ConsoleInput.Select();
+            ConsoleInput.ActivateInputField();
         }
         if(Input.GetKeyDown(KeyCode.Escape))
         {
@@ -103,8 +105,8 @@ public class ConsoleManager : MonoBehaviour
     public void OutputMessage(string message)
     {
         GameObject new_message = Instantiate(ConsoleMessageTemplate).gameObject;
-        new_message.transform.SetParent(ConsoleMessageList.transform, false);
         new_message.SetActive(true);
+        new_message.transform.SetParent(ConsoleMessageList.transform, false);
         new_message.GetComponentInChildren<Text>().text = message;
     }
 }

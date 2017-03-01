@@ -157,7 +157,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ItemOffice:
-    Buildings: []
+    Features: []
+    Employees: []
+    QualityBonuses: []
+    MoraleModifier: 0
+    SalesModifier: 0
   LocationText: {fileID: 114754036201888154}
   BuildingCountText: {fileID: 114195365987173294}
   UpkeepCostText: {fileID: 114643991524728142}
@@ -415,7 +419,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 50}
+  m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 1, y: 1}
 --- !u!224 &224182390441628126
 RectTransform:
@@ -433,7 +437,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 0}
+  m_SizeDelta: {x: 150, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!224 &224322423082586064
 RectTransform:
@@ -451,7 +455,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 10, y: 0}
-  m_SizeDelta: {x: 290, y: 0}
+  m_SizeDelta: {x: 350, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!224 &224409686681032318
 RectTransform:
@@ -469,7 +473,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 0}
+  m_SizeDelta: {x: 150, y: 0}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!224 &224460091743066584
 RectTransform:
@@ -546,5 +550,5 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 50}
+  m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 1, y: 0}
