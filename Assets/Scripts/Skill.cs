@@ -41,6 +41,7 @@ public class SkillList
     public int Length { get { return allSkills.Count; } }
     public IEnumerable<SkillLevel> Skills { get { return allSkills; } }
 
+    [SerializeField]
     private readonly List<SkillLevel> allSkills;
 
     public SkillList()

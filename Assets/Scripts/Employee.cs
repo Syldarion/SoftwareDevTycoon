@@ -8,10 +8,16 @@ using Random = UnityEngine.Random;
 [Serializable]
 public class Employee : Person
 {
+    private const float SALARY_SKILL_FACTOR = 0.2f;
+
+    public int Pay { get { return Mathf.CeilToInt(Salary / 12.0f); } }
+
     public JobTitle CurrentTitle;
     public int HireCost;
-    public int Pay;
+    public int Salary;
     public long HireDateBinary;
+
+    public int CurrentOfficeIndex;
 
     public float Morale { get; private set; }
 
@@ -22,7 +28,7 @@ public class Employee : Person
 
     public void GiveRaise(float percentage)
     {
-        Pay = Mathf.CeilToInt(Pay * (1.0f + percentage));
+        Salary = Mathf.CeilToInt(Salary * (1.0f + percentage));
         Morale += percentage * 0.5f;
     }
 
@@ -35,13 +41,13 @@ public class Employee : Person
 
     public static Employee GenerateEmployee()
     {
-        JobTitle title = JobTitles.GetRandomTitle();
+        JobTitle title = JobTitle.GetRandomTitle();
         Employee new_employee = new Employee();
 
         new_employee.CurrentTitle = title;
-        new_employee.Pay = Mathf.CeilToInt(title.SkillRequirements.Sum() * 0.2f)
-                           * Random.Range(50, 76) * 1000;
-        new_employee.HireCost = Mathf.CeilToInt(Random.Range(0.05f, 1.0f) * new_employee.Pay);
+        new_employee.Salary = Mathf.CeilToInt(title.SkillRequirements.Sum() * SALARY_SKILL_FACTOR)
+                           * Random.Range(50, 60) * 1000;
+        new_employee.HireCost = Mathf.CeilToInt(Random.Range(0.05f, 1.0f) * new_employee.Salary);
         new_employee.Name = PersonNames.GetRandomName();
         new_employee.Age = Random.Range(18, 50);
         new_employee.CurrentLocation = Location.GetRandomLocation();

@@ -12,10 +12,11 @@ public class Company
     public static Company MyCompany;
 
     public const int BASE_COMPANY_COST = 100000;
+    public const int BASE_SEVERANCE_PAY = 20000;
     public const int TRAINING_COST_MULTIPLIER = 500;
 
     //Properties
-    public string Name { get { return name; } }
+    public string Name { get { return companyName; } }
     public int Reputation { get { return reputation; } }
     public int Funds { get { return funds; } }
     public int TeamSize { get { return employees.Count; } }
@@ -26,18 +27,23 @@ public class Company
     public List<Office> CompanyOffices;
 
     //Private Fields
-    private string name;
+    [SerializeField]
+    private string companyName;
+    [SerializeField]
     private int reputation;
+    [SerializeField]
     private int funds;
-    private int baseSeverancePay;
+    [SerializeField]
     private List<Employee> employees;
 
     public Company(string name)
     {
-        this.name = name;
+        companyName = name;
 
         CompanyOffices = new List<Office>();
         employees = new List<Employee>();
+
+        SetupEvents();
     }
 
     public static Company CreateNewCompany(string name, int initSpace)
@@ -126,6 +132,8 @@ public class Company
 
         employees.Add(employee);
 
+        MyCompany.CompanyOffices.First().Employees.Add(employee);
+
         StatusBarManager.Instance.UpdateCompanyInfo();
     }
 
@@ -135,7 +143,8 @@ public class Company
             return;
         
         TimeSpan job_length = TimeManager.CurrentDate - DateTime.FromBinary(employee.HireDateBinary);
-        int total_sev_pay = baseSeverancePay + Mathf.CeilToInt((job_length.Days / 356.0f) * (employee.Pay / 12.0f));
+        int total_sev_pay = BASE_SEVERANCE_PAY + 
+            Mathf.CeilToInt((job_length.Days / 356.0f) * (employee.Salary / 12.0f));
 
         AdjustFunds(-total_sev_pay);
         AdjustReputation(-1);

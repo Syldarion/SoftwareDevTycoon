@@ -145,8 +145,9 @@ public class Contract
     public static Contract[] GenerateContracts()
     {
         int team_size = Company.MyCompany == null ? 1 : Company.MyCompany.TeamSize;
-        int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
-        reputation = Mathf.Clamp(reputation, 0, 100);
+        //int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
+        //reputation = Mathf.Clamp(reputation, 0, 100);
+        int reputation = 100;
 
         Contract[] generated_contracts = new Contract[3];
 
@@ -155,6 +156,7 @@ public class Contract
         Random.InitState(TimeManager.Week * TimeManager.Year * (char_name_val + 1));
 
         int contract_difficulty = team_size == 1 ? 1 : Mathf.CeilToInt(Mathf.Log(team_size, 2.0f));
+        Debug.Log(contract_difficulty);
 
         for (int i = 0; i < generated_contracts.Length; i++)
         {

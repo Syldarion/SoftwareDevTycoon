@@ -7,16 +7,26 @@ using System.Linq;
 [Serializable]
 public class Project
 {
+    public enum Status
+    {
+        InProgress,
+        Halted,
+        OnSale,
+        Retired
+    }
+
     public const int VALUE_PER_QUALITY_LEVEL = 100;
     public const int PROJECT_SELL_MONTHS = 24;
 
+    public int CurrentPayout { get; private set; }
+
     public string Name;
+    public Status CurrentStatus;
     
     public SkillList QualityLevels;
 
     private int totalPayout;
     private int payoutPerMonth;
-    private int currentTotalPayout;
 
     public Project(string name)
     {
@@ -42,8 +52,8 @@ public class Project
     public void Payout()
     {
         Company.MyCompany.AdjustFunds(payoutPerMonth);
-        currentTotalPayout += payoutPerMonth;
-        if(currentTotalPayout >= totalPayout)
+        CurrentPayout += payoutPerMonth;
+        if(CurrentPayout >= totalPayout)
             TimeManager.PerMonthEvent.RemoveListener(Payout);
     }
 

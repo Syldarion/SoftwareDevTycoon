@@ -13,15 +13,9 @@ public class EmployeeItem : MonoBehaviour, IPointerDownHandler
     public Text BriefSkillsText;
     public Text TitleText;
 
-    void Start()
-    {
+    void Start() {}
 
-    }
-
-    void Update()
-    {
-
-    }
+    void Update() {}
 
     public void OnPointerDown(PointerEventData eventData)
     {

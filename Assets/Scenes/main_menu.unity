@@ -2479,7 +2479,7 @@ Prefab:
     - target: {fileID: 224000014244455820, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 224000014244455820, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
@@ -2529,7 +2529,7 @@ Prefab:
     - target: {fileID: 224000011064536964, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -60
       objectReference: {fileID: 0}
     - target: {fileID: 224000011064536964, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
@@ -2539,7 +2539,7 @@ Prefab:
     - target: {fileID: 224000011064536964, guid: 63c1e99ccd30d1f458fb3b79500d7846,
         type: 2}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 120
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 63c1e99ccd30d1f458fb3b79500d7846, type: 2}
@@ -8705,29 +8705,33 @@ MonoBehaviour:
         Payment: 0
         ReputationReward: 0
       Birthday: 
-    activePlayerContract:
-      Name: 
-      InitialPointsNeeded: 0
-      DaysToComplete: 0
-      DaysRemaining: 0
-      Payment: 0
-      ReputationReward: 0
-    activeCompanyContract:
-      Name: 
-      InitialPointsNeeded: 0
-      DaysToComplete: 0
-      DaysRemaining: 0
-      Payment: 0
-      ReputationReward: 0
     dateString: 
     activeApplications: []
     myJob:
       CompanyName: 
       Salary: 0
+      CurrentTitle:
+        Name: 
+        PayFactor: 0
       SigningBonus: 0
-      SeverancePay: 0
       HireDateBinary: 0
       isPayWeek: 0
+    myCompany:
+      CompanyProject:
+        Name: 
+        CurrentStatus: 0
+      ActiveContract:
+        Name: 
+        InitialPointsNeeded: 0
+        DaysToComplete: 0
+        DaysRemaining: 0
+        Payment: 0
+        ReputationReward: 0
+      CompanyOffices: []
+      companyName: 
+      reputation: 0
+      funds: 0
+      employees: []
 --- !u!1 &1573065465
 GameObject:
   m_ObjectHideFlags: 0
@@ -11398,29 +11402,33 @@ MonoBehaviour:
         Payment: 0
         ReputationReward: 0
       Birthday: 
-    activePlayerContract:
-      Name: 
-      InitialPointsNeeded: 0
-      DaysToComplete: 0
-      DaysRemaining: 0
-      Payment: 0
-      ReputationReward: 0
-    activeCompanyContract:
-      Name: 
-      InitialPointsNeeded: 0
-      DaysToComplete: 0
-      DaysRemaining: 0
-      Payment: 0
-      ReputationReward: 0
     dateString: 
     activeApplications: []
     myJob:
       CompanyName: 
       Salary: 0
+      CurrentTitle:
+        Name: 
+        PayFactor: 0
       SigningBonus: 0
-      SeverancePay: 0
       HireDateBinary: 0
       isPayWeek: 0
+    myCompany:
+      CompanyProject:
+        Name: 
+        CurrentStatus: 0
+      ActiveContract:
+        Name: 
+        InitialPointsNeeded: 0
+        DaysToComplete: 0
+        DaysRemaining: 0
+        Payment: 0
+        ReputationReward: 0
+      CompanyOffices: []
+      companyName: 
+      reputation: 0
+      funds: 0
+      employees: []
   Saves: []
 --- !u!1 &2029049683
 GameObject:

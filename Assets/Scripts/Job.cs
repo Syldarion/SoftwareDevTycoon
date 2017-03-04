@@ -5,18 +5,61 @@ using System.Collections.Generic;
 using System.Linq;
 using Random = UnityEngine.Random;
 
-[System.Serializable]
+[Serializable]
 public class JobTitle
 {
-    public string Name { get; private set; }
+    public static JobTitle[][] AllTitles =
+    {
+        new []
+        {
+            new JobTitle("Junior Programmer", 0.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 4)})),
+            new JobTitle("Mid-Level Programmer", 0.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 6)})),
+            new JobTitle("Senior Programmer", 0.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 8)})),
+        },
+        new []
+        {
+            new JobTitle("Junior Designer", 0.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 4)})),
+            new JobTitle("Mid-Level Designer", 0.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 6)})),
+            new JobTitle("Senior Designer", 0.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 8)})),
+        },
+        new []
+        {
+            new JobTitle("Junior Database Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 4)})),
+            new JobTitle("Mid-Level Database Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 6)})),
+            new JobTitle("Senior Database Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 8)})),
+        },
+        new []
+        {
+            new JobTitle("Junior Network Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 4)})),
+            new JobTitle("Mid-Level Network Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 6)})),
+            new JobTitle("Senior Network Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 8)})),
+        },
+        new []
+        {
+            new JobTitle("Junior Web Developer", 0.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 4)})),
+            new JobTitle("Mid-Level Web Developer", 0.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 6)})),
+            new JobTitle("Senior Web Developer", 0.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 8)})),
+        }
+    };
+
+    public static JobTitle GetRandomTitle()
+    {
+        int job_type = Random.Range(0, AllTitles.Length);
+        int specific_job = Random.Range(0, AllTitles[job_type].Length);
+        return AllTitles[job_type][specific_job];
+    }
+
+    public string Name;
+    public float PayFactor;
 
     public SkillList SkillRequirements { get; private set; }
 
     private JobTitle nextLevel;
 
-    public JobTitle(string name, SkillList reqs)
+    public JobTitle(string name, float factor, SkillList reqs)
     {
         Name = name;
+        PayFactor = factor;
         SkillRequirements = reqs;
     }
 
@@ -63,9 +106,8 @@ public class JobApplication
 
         if (Random.Range(0.0f, 1.0f) >= chance_for_reply) return;
 
-        int base_accept_chance = 75;
-        for (int i = 0; i < 5; i++)
-            base_accept_chance += Character.MyCharacter.Skills[i].Level - AppliedJob.CurrentTitle.SkillRequirements[i].Level;
+        int base_accept_chance = 75 + AppliedJob.CurrentTitle.SkillRequirements.Skills
+            .Sum(skill => Character.MyCharacter.Skills[skill.Skill].Level - skill.Level);
 
         Accepted = Random.Range(0, 101) < base_accept_chance;
     }
@@ -74,6 +116,8 @@ public class JobApplication
 [Serializable]
 public class Job
 {
+    public const int BASE_SEVERANCE_PAY = 20000;
+
     public static Job MyJob;
 
     public string CompanyName;
@@ -81,7 +125,6 @@ public class Job
     public JobTitle CurrentTitle;
     public Location JobLocation;
     public int SigningBonus;
-    public int SeverancePay;
     public long HireDateBinary; //has to be this for serialization
     public int Performance {get {return performance;} set { performance = Mathf.Clamp(value, 0, 100); } }
     private int performance;
@@ -176,7 +219,7 @@ public class Job
         TimeManager.PerWeekEvent.RemoveListener(PayPlayer);
 
         TimeSpan job_length = TimeManager.CurrentDate - DateTime.FromBinary(HireDateBinary);
-        int total_sev_pay = SeverancePay + Mathf.CeilToInt((job_length.Days / 30.0f) * (Salary / 12.0f));
+        int total_sev_pay = BASE_SEVERANCE_PAY + Mathf.CeilToInt((job_length.Days / 30.0f) * (Salary / 12.0f));
 
         Character.MyCharacter.AdjustMoney(total_sev_pay);
     }
@@ -191,19 +234,12 @@ public class Job
         for (int i = 0; i < count; i++)
         {
             Job new_job = new Job();
-            new_job.Salary = Random.Range(50, 76) * 1000;
-
-            int sector = Random.Range(0, JobTitles.AllTitles.Length);
-            int job_title = Random.Range(0, JobTitles.AllTitles[sector].Length);
-
-            new_job.CurrentTitle = JobTitles.AllTitles[sector][job_title];
-
+            new_job.CompanyName = CompanyNames.GetRandomName();
+            new_job.Salary = Random.Range(50, 60) * 1000;
+            new_job.CurrentTitle = JobTitle.GetRandomTitle();
             new_job.JobLocation = Location.GetRandomLocation();
-
-            new_job.Salary = Mathf.CeilToInt(new_job.Salary * (1.0f + job_title * 0.3f));
-
+            new_job.Salary = Mathf.CeilToInt(new_job.Salary * new_job.CurrentTitle.PayFactor);
             new_job.SigningBonus = Mathf.CeilToInt(Random.Range(0.05f, 1.0f) * new_job.Salary);
-            new_job.SeverancePay = Random.Range(1, 7) * new_job.Salary;
 
             jobs.Add(new_job);
         }

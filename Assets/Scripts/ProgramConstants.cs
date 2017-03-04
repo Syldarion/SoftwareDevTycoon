@@ -115,50 +115,6 @@ public static class PrebuiltProjectTasks
     };
 }
 
-public static class JobTitles
-{
-    public static JobTitle[][] AllTitles =
-    {
-        new []
-        {
-            new JobTitle("Junior Programmer", new SkillList(new []{new SkillLevel(Skill.Programming, 4)})),
-            new JobTitle("Mid-Level Programmer", new SkillList(new []{new SkillLevel(Skill.Programming, 6)})),
-            new JobTitle("Senior Programmer", new SkillList(new []{new SkillLevel(Skill.Programming, 8)})),
-        },
-        new []
-        {
-            new JobTitle("Junior Designer", new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 4)})),
-            new JobTitle("Mid-Level Designer", new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 6)})),
-            new JobTitle("Senior Designer", new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 8)})),
-        },
-        new []
-        {
-            new JobTitle("Junior Database Administrator", new SkillList(new []{new SkillLevel(Skill.Databases, 4)})),
-            new JobTitle("Mid-Level Database Administrator", new SkillList(new []{new SkillLevel(Skill.Databases, 6)})),
-            new JobTitle("Senior Database Administrator", new SkillList(new []{new SkillLevel(Skill.Databases, 8)})),
-        },
-        new []
-        {
-            new JobTitle("Junior Network Administrator", new SkillList(new []{new SkillLevel(Skill.Networking, 4)})),
-            new JobTitle("Mid-Level Network Administrator", new SkillList(new []{new SkillLevel(Skill.Networking, 6)})),
-            new JobTitle("Senior Network Administrator", new SkillList(new []{new SkillLevel(Skill.Networking, 8)})),
-        },
-        new []
-        {
-            new JobTitle("Junior Web Developer", new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 4)})),
-            new JobTitle("Mid-Level Web Developer", new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 6)})),
-            new JobTitle("Senior Web Developer", new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 8)})),
-        }
-    };
-
-    public static JobTitle GetRandomTitle()
-    {
-        int job_type = Random.Range(0, AllTitles.Length);
-        int specific_job = Random.Range(0, AllTitles[job_type].Length);
-        return AllTitles[job_type][specific_job];
-    }
-}
-
 public static class PersonNames
 {
     public static string[] FirstNames = {
@@ -188,5 +144,26 @@ public static class PersonNames
         return string.Format("{0} {1}",
                              FirstNames[Random.Range(0, FirstNames.Length)],
                              LastNames[Random.Range(0, LastNames.Length)]);
+    }
+}
+
+public static class CompanyNames
+{
+    public static string[] Names = {
+        "Wintel",
+        "Advanced Macro Devices",
+        "OUTVidia",
+        "Goggle",
+        "Whamazon",
+        "Circle",
+        "BMWare",
+        "Macrohard",
+        "Pear",
+        "Facespace"
+    };
+
+    public static string GetRandomName()
+    {
+        return Names[Random.Range(0, Names.Length)];
     }
 }
