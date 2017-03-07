@@ -19,11 +19,11 @@ public class Office
     public int Space { get { return space; } }
     public int RemainingSpace
     {
-        get { return space - Features.Sum(x => x.Size); }
+        get { return space - FeatureIDs.Select(x => OfficeFeature.AllFeatures[x]).Sum(x => x.Size); }
     }
     public int TotalUpkeepCost
     {
-        get { return BASE_UPKEEP_COST + Features.Sum(x => x.TotalCost); }
+        get { return BASE_UPKEEP_COST + FeatureIDs.Select(x => OfficeFeature.AllFeatures[x]).Sum(x => x.TotalCost); }
     }
     public int PurchasePrice { get { return Space * COST_PER_SPACE; } }
     public int SellPrice
@@ -32,7 +32,7 @@ public class Office
     }
 
     //Public Fields
-    public List<OfficeFeature> Features;
+    public List<int> FeatureIDs;
     public List<Employee> Employees;
     public Location OfficeLocation;
     public float[] QualityBonuses;
@@ -44,7 +44,7 @@ public class Office
     
     public Office(int officeSpace)
     {
-        Features = new List<OfficeFeature>();
+        FeatureIDs = new List<int>();
         Employees = new List<Employee>();
         QualityBonuses = new float[SkillInfo.COUNT];
         space = Mathf.Clamp(officeSpace, MIN_OFFICE_SPACE, MAX_OFFICE_SPACE);
@@ -55,27 +55,27 @@ public class Office
 
     }
 
-    public void AddOfficeFeature(OfficeFeature feature)
+    public void AddOfficeFeature(int featureID)
     {
-        if(RemainingSpace - feature.Size >= 0 && !Features.Contains(feature))
+        if(RemainingSpace - OfficeFeature.AllFeatures[featureID].Size >= 0 && !FeatureIDs.Contains(featureID))
         {
-            Features.Add(feature);
-            feature.ApplyBonuses(this);
+            FeatureIDs.Add(featureID);
+            OfficeFeature.AllFeatures[featureID].ApplyBonuses(this);
         }
     }
 
-    public void RemoveOfficeFeature(OfficeFeature feature)
+    public void RemoveOfficeFeature(int featureID)
     {
-        if(Features.Contains(feature))
+        if(FeatureIDs.Contains(featureID))
         {
-            feature.RemoveBonuses(this);
-            Features.Remove(feature);
+            OfficeFeature.AllFeatures[featureID].RemoveBonuses(this);
+            FeatureIDs.Remove(featureID);
         }
     }
 
     public IEnumerable<OfficeFeature> AvailableFeatures()
     {
-        return OfficeFeature.AllFeatures.Where(x => !Features.Contains(x));
+        return OfficeFeature.AllFeatures.Where((t, i) => !FeatureIDs.Contains(i)).ToList();
     }
 
     public void MoveEmployee(Employee emp, Office newOffice)
@@ -137,26 +137,26 @@ public class OfficeFeature
     };
 
     //Properties
-    public int TotalCost { get { return Bonuses.Sum(x => x.TotalCost); } }
+    public int TotalCost { get { return bonuses.Sum(x => x.TotalCost); } }
 
     //Public Fields
     public string Name;
     public int Size;
-    public List<OfficeBonus> Bonuses;
     public string BonusDescription;
 
     //Private Fields
+    private List<OfficeBonus> bonuses;
 
     public OfficeFeature(string featureName, int size)
     {
         Name = featureName;
         Size = size;
-        Bonuses = new List<OfficeBonus>();
+        bonuses = new List<OfficeBonus>();
     }
 
     public OfficeFeature AddBonus(OfficeBonus bonus)
     {
-        Bonuses.Add(bonus);
+        bonuses.Add(bonus);
         return this;
     }
 
@@ -168,18 +168,17 @@ public class OfficeFeature
 
     public void ApplyBonuses(Office office)
     {
-        foreach(OfficeBonus bonus in Bonuses)
+        foreach(OfficeBonus bonus in bonuses)
             bonus.OnAdd(office);
     }
 
     public void RemoveBonuses(Office office)
     {
-        foreach(OfficeBonus bonus in Bonuses)
+        foreach(OfficeBonus bonus in bonuses)
             bonus.OnRemove(office);
     }
 }
 
-[Serializable]
 public class OfficeBonus
 {
     public UnityAction<Office> OnAdd, OnRemove;
@@ -193,7 +192,6 @@ public class OfficeBonus
     public OfficeBonus() { }
 }
 
-[Serializable]
 public class OfficeMoraleBonus : OfficeBonus
 {
     public OfficeMoraleBonus(float increaseBy)
@@ -205,7 +203,6 @@ public class OfficeMoraleBonus : OfficeBonus
     }
 }
 
-[Serializable]
 public class OfficeQualityBonus : OfficeBonus
 {
     public OfficeQualityBonus(Skill[] skills, float increaseBy)
@@ -221,7 +218,6 @@ public class OfficeQualityBonus : OfficeBonus
     }
 }
 
-[Serializable]
 public class OfficeSalesBonus : OfficeBonus
 {
     public OfficeSalesBonus(float increaseBy)

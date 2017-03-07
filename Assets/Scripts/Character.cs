@@ -27,6 +27,13 @@ public class Person
     public Gender PersonGender;
     public Location CurrentLocation;
 
+    [SerializeField]
+    private float[] headColor;
+    [SerializeField]
+    private float[] bodyColor;
+    [SerializeField]
+    private float[] legsColor;
+
     public SkillList Skills = new SkillList(new[] {
         new SkillLevel(Skill.Programming, 1),
         new SkillLevel(Skill.UserInterfaces, 1),
@@ -34,6 +41,63 @@ public class Person
         new SkillLevel(Skill.Networking, 1),
         new SkillLevel(Skill.WebDevelopment, 1),
     });
+
+    public void SetHeadColor(Color color)
+    {
+        headColor = new [] {
+            color.r,
+            color.g,
+            color.b,
+            color.a
+        };
+    }
+
+    public void SetBodyColor(Color color)
+    {
+        bodyColor = new[] {
+            color.r,
+            color.g,
+            color.b,
+            color.a
+        };
+    }
+
+    public void SetLegsColor(Color color)
+    {
+        legsColor = new[] {
+            color.r,
+            color.g,
+            color.b,
+            color.a
+        };
+    }
+
+    public Color GetHeadColor()
+    {
+        return new Color(
+            headColor[0],
+            headColor[1],
+            headColor[2],
+            headColor[3]);
+    }
+
+    public Color GetBodyColor()
+    {
+        return new Color(
+            bodyColor[0],
+            bodyColor[1],
+            bodyColor[2],
+            bodyColor[3]);
+    }
+
+    public Color GetLegsColor()
+    {
+        return new Color(
+            legsColor[0],
+            legsColor[1],
+            legsColor[2],
+            legsColor[3]);
+    }
 }
 
 [Serializable]

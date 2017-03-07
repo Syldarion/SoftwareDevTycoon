@@ -23,6 +23,7 @@ public class SaveManager : Singleton<SaveManager>
     void Start()
     {
         Debug.Log(string.Format("Save Path: {0}", Application.persistentDataPath));
+        LoadAllGames();
     }
 
     void Update()

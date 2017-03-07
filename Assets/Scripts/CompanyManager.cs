@@ -409,9 +409,7 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenAddFeaturePanel(Office office)
     {
-        List<OfficeFeature> available_features =
-            OfficeFeature.AllFeatures.Where(x => 
-            !office.Features.Contains(x) && x.Size <= office.RemainingSpace).ToList();
+        List<OfficeFeature> available_features = office.AvailableFeatures().ToList();
 
         if(available_features.Count <= 0) return;
 
@@ -434,7 +432,7 @@ public class CompanyManager : Singleton<CompanyManager>
         AddFeatureButton.onClick.RemoveAllListeners();
         AddFeatureButton.onClick.AddListener(() =>
         {
-            office.AddOfficeFeature(available_features[FeatureListDropdown.value]);
+            office.AddOfficeFeature(OfficeFeature.AllFeatures.ToList().FindIndex(x => x.Name == FeatureListDropdown.captionText.text));
             RefreshCurrentOfficesList();
             PopulateOfficeDetail(office);
             AddFeaturePanel.alpha = 0;

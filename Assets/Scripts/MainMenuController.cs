@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MessageItem
@@ -26,7 +28,7 @@ public class MessageItem
 
 public class MainMenuController : Singleton<MainMenuController>
 {
-    private const float TIME_PER_CHARACTER = 0.07f;
+    private const float TIME_PER_CHARACTER = 0.05f;
     private const float CURSOR_FLASH_RATE = 0.2f;
     private const float WAIT_FOR_EXECUTE = 0.5f;
 
@@ -38,16 +40,27 @@ public class MainMenuController : Singleton<MainMenuController>
     public CanvasGroup AvatarPanel;
 
     [Header("New Game Information UI")]
-    public InputField CharacterName;
+    public InputField CharacterNameInput;
+    public InputField CharacterBirthdayDayInput;
+    public InputField CharacterBirthdayMonthInput;
+    public InputField CharacterBirthdayYearInput;
+    public Text CharacterLocationText;
 
     [Header("New Game Skills UI")]
-    public InputField ProgrammingSkillInput;
-    public InputField UserInterfacesSkillInput;
-    public InputField DatabasesSkillInput;
-    public InputField NetworkingSkillInput;
-    public InputField WebDevelopmentSkillInput;
+    public SkillAllocationControl ProgrammingSkillAllocator;
+    public SkillAllocationControl UserInterfacesSkillAllocator;
+    public SkillAllocationControl DatabasesSkillAllocator;
+    public SkillAllocationControl NetworkingSkillAllocator;
+    public SkillAllocationControl WebDevelopmentSkillAllocator;
 
-    //[Header("New Game Avatar UI")]
+    [Header("New Game Avatar UI")]
+    public CharacterAvatar NewCharacterAvatar;
+
+    [Header("Settings Panels")]
+    public CanvasGroup AudioSettingsPanel;
+    public CanvasGroup VideoSettingsPanel;
+    public CanvasGroup ControlsSettingsPanel;
+    public CanvasGroup GameplaySettingsPanel;
 
     [Header("Console UI")]
     public Text ConsoleText;
@@ -58,6 +71,8 @@ public class MainMenuController : Singleton<MainMenuController>
     private Queue<MessageItem> messageQueue;
     private bool cursorFlashing;
     private CanvasGroup activePanel;
+    private DateTime latestBirthday;
+    private int currentLocationIndex;
 
     void Awake()
     {
@@ -66,6 +81,8 @@ public class MainMenuController : Singleton<MainMenuController>
         messageQueue = new Queue<MessageItem>();
         cursorFlashing = false;
         activePanel = null;
+        latestBirthday = DateTime.Today - new TimeSpan(365 * 18, 0, 0, 0);
+        currentLocationIndex = 0;
     }
 
     void Start()
@@ -73,10 +90,16 @@ public class MainMenuController : Singleton<MainMenuController>
         StartCoroutine(FlashCursor());
         StartCoroutine(CheckQueue());
 
+        LoadCurrentSettings();
+        CharacterLocationText.text = Location.Locations[currentLocationIndex].Name;
+
         AddMessageToQueue(new MessageItem("software_dev_tycoon", "exec", OpenBaseMenu));
     }
 
-    void Update() {}
+    void Update()
+    {
+        
+    }
 
     public void ClearMenu()
     {
@@ -109,9 +132,7 @@ public class MainMenuController : Singleton<MainMenuController>
     public void OpenNewGameMenu()
     {
         ClearMenu();
-        //open new game panel
-
-        AddMessageToQueue(new MessageItem("information", "modify", OpenCustomizationPanel));
+        AddMessageToQueue(new MessageItem("information", "modify", OpenInformationPanel));
         AddMessageToQueue(new MessageItem("skills", "modify", OpenSkillsPanel));
         AddMessageToQueue(new MessageItem("avatar", "modify", OpenAvatarPanel));
         AddMessageToQueue(new MessageItem("start_game", "exec", StartNewGame));
@@ -122,9 +143,47 @@ public class MainMenuController : Singleton<MainMenuController>
         }));
     }
 
-    public void OpenCustomizationPanel()
+    public void OpenInformationPanel()
     {
         StartCoroutine(SwitchConsoleScreenPanel(InformationPanel));
+    }
+
+    public void CheckBirthdayInput()
+    {
+        DateTime entered_date = ConstructDateFromInput();
+        if(entered_date > latestBirthday)
+            entered_date = latestBirthday;
+
+        CharacterBirthdayDayInput.text = entered_date.Day.ToString();
+        CharacterBirthdayMonthInput.text = entered_date.Month.ToString();
+        CharacterBirthdayYearInput.text = entered_date.Year.ToString();
+    }
+
+    public DateTime ConstructDateFromInput()
+    {
+        int day, month, year;
+        if (!int.TryParse(CharacterBirthdayDayInput.text, out day)) day = DateTime.Today.Day;
+        if (!int.TryParse(CharacterBirthdayMonthInput.text, out month)) month = DateTime.Today.Month;
+        if (!int.TryParse(CharacterBirthdayYearInput.text, out year)) year = DateTime.Today.Year;
+
+        day = Mathf.Clamp(day, 1, 31);
+        month = Mathf.Clamp(month, 1, 12);
+        year = Mathf.Clamp(year, 1970, 9999);
+
+        DateTime entered_date = new DateTime(year, month, day);
+
+        return entered_date;
+    }
+
+    public void SwitchLocationSelection(int direction)
+    {
+        int temp = currentLocationIndex + direction;
+        if(temp >= Location.Locations.Count)
+            temp = 0;
+        if(temp < 0)
+            temp = Location.Locations.Count - 1;
+        currentLocationIndex = temp;
+        CharacterLocationText.text = Location.Locations[currentLocationIndex].Name;
     }
 
     public void OpenSkillsPanel()
@@ -139,7 +198,38 @@ public class MainMenuController : Singleton<MainMenuController>
 
     public void StartNewGame()
     {
-        
+        SaveManager.Instance.ActiveSave = null;
+
+        DateTime birthday = ConstructDateFromInput();
+
+        Character new_character = new Character {
+            Name = string.IsNullOrEmpty(CharacterNameInput.text) ? PersonNames.GetRandomName() : CharacterNameInput.text,
+            Age = DateTime.Today.Month > birthday.Month ||
+                  (DateTime.Today.Month == birthday.Month && DateTime.Today.Day > birthday.Day)
+                      ? DateTime.Today.Year - birthday.Year
+                      : DateTime.Today.Year - birthday.Year - 1,
+            PersonGender = NewCharacterAvatar.AvatarMaleBody.gameObject.activeSelf
+                               ? Person.Gender.Male
+                               : Person.Gender.Female,
+            Birthday = birthday.ToString("dd-MM-yyyy"),
+            CurrentLocation = Location.Locations[currentLocationIndex]
+        };
+
+        new_character.SetHeadColor(NewCharacterAvatar.AvatarHead.color);
+        new_character.SetBodyColor(NewCharacterAvatar.AvatarMaleBody.color);
+        new_character.SetLegsColor(NewCharacterAvatar.AvatarLegs.color);
+
+        new_character.AdjustMoney(5000);
+        new_character.AdjustReputation(50);
+
+        new_character.Skills[Skill.Programming].Level = ProgrammingSkillAllocator.CurrentSkillLevel;
+        new_character.Skills[Skill.UserInterfaces].Level = UserInterfacesSkillAllocator.CurrentSkillLevel;
+        new_character.Skills[Skill.Databases].Level = DatabasesSkillAllocator.CurrentSkillLevel;
+        new_character.Skills[Skill.Networking].Level = NetworkingSkillAllocator.CurrentSkillLevel;
+        new_character.Skills[Skill.WebDevelopment].Level = WebDevelopmentSkillAllocator.CurrentSkillLevel;
+
+        SceneManager.LoadScene("in_game");
+        new_character.SetupEvents();
     }
 
     public void OpenLoadGameMenu()
@@ -156,64 +246,55 @@ public class MainMenuController : Singleton<MainMenuController>
     public void OpenBaseSettingsMenu()
     {
         ClearMenu();
-        AddMessageToQueue(new MessageItem("audio", "exec", OpenAudioSettingsMenu));
-        AddMessageToQueue(new MessageItem("video", "exec", OpenVideoSettingsMenu));
-        AddMessageToQueue(new MessageItem("controls", "exec", OpenControlsSettingsMenu));
-        AddMessageToQueue(new MessageItem("gameplay", "exec", OpenGameplaySettingsMenu));
-        AddMessageToQueue(new MessageItem("main_menu", "exec", OpenBaseMenu));
+        AddMessageToQueue(new MessageItem("audio", "modify", OpenAudioSettingsMenu));
+        AddMessageToQueue(new MessageItem("video", "modify", OpenVideoSettingsMenu));
+        AddMessageToQueue(new MessageItem("controls", "modify", OpenControlsSettingsMenu));
+        AddMessageToQueue(new MessageItem("gameplay", "modify", OpenGameplaySettingsMenu));
+        AddMessageToQueue(new MessageItem("save", "exec", SaveCurrentSettings));
+        AddMessageToQueue(new MessageItem("main_menu", "exec", () =>
+        {
+            StartCoroutine(SwitchConsoleScreenPanel(null));
+            OpenBaseMenu();
+        }));
     }
 
     public void OpenAudioSettingsMenu()
     {
-        ClearMenu();
-        OpenConsoleScreen();
-        //open audio settings panel
-        AddMessageToQueue(new MessageItem("settings", "exec", () =>
-        {
-            CloseConsoleScreen();
-            OpenBaseSettingsMenu();
-        }));
+        StartCoroutine(SwitchConsoleScreenPanel(AudioSettingsPanel));
     }
 
     public void OpenVideoSettingsMenu()
     {
-        ClearMenu();
-        //open video settings panel
-        AddMessageToQueue(new MessageItem("settings", "exec", () =>
-        {
-            CloseConsoleScreen();
-            OpenBaseSettingsMenu();
-        }));
+        StartCoroutine(SwitchConsoleScreenPanel(VideoSettingsPanel));
     }
 
     public void OpenControlsSettingsMenu()
     {
-        ClearMenu();
-        //open controls settings panel
-        AddMessageToQueue(new MessageItem("settings", "exec", () =>
-        {
-            CloseConsoleScreen();
-            OpenBaseSettingsMenu();
-        }));
+        StartCoroutine(SwitchConsoleScreenPanel(ControlsSettingsPanel));
     }
 
     public void OpenGameplaySettingsMenu()
     {
-        ClearMenu();
-        //open gameplay settings panel
-        AddMessageToQueue(new MessageItem("settings", "exec", () =>
-        {
-            CloseConsoleScreen();
-            OpenBaseSettingsMenu();
-        }));
+        StartCoroutine(SwitchConsoleScreenPanel(GameplaySettingsPanel));
+    }
+
+    public void LoadCurrentSettings()
+    {
+        AudioController.Instance.LoadAudioSettings();
+    }
+
+    public void SaveCurrentSettings()
+    {
+        AudioController.Instance.SaveAudioSettings();
     }
 
     public void Terminate()
     {
-        if(Application.isEditor)
-            UnityEditor.EditorApplication.isPlaying = false;
-        else
-            Application.Quit();
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
     }
 
     private void LoadSave(GameSave save)
@@ -244,7 +325,10 @@ public class MainMenuController : Singleton<MainMenuController>
             }
             activePanel.alpha = 0.0f;
             CloseConsoleScreen();
-            yield return new WaitForSeconds(1.0f);
+            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("CloseAnimation"))
+                yield return null;
+            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("WaitState"))
+                yield return null;
         }
 
         activePanel = newPanel;
@@ -252,7 +336,10 @@ public class MainMenuController : Singleton<MainMenuController>
         if(activePanel != null)
         {
             OpenConsoleScreen();
-            yield return new WaitForSeconds(1.0f);
+            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("OpenAnimation"))
+                yield return null;
+            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("WaitState"))
+                yield return null;
             while(activePanel.alpha < 1.0f)
             {
                 activePanel.alpha += 2.0f * Time.deltaTime;
