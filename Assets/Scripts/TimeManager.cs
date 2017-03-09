@@ -20,13 +20,13 @@ public class TimeManager : Singleton<TimeManager>
     public static int Day { get { return CurrentDate.Day; } }
     public static string DateString { get { return CurrentDate.ToString("ddMMyyyy"); } }
 
-    private static bool paused;
-    private static bool locked;
+    private static bool PAUSED;
+    private static bool LOCKED;
 
     void Awake()
     {
         Instance = this;
-        paused = false;
+        PAUSED = false;
         CurrentDate = DateTime.Today;
     }
 
@@ -38,7 +38,7 @@ public class TimeManager : Singleton<TimeManager>
 
     void Update()
     {
-        if (ControlKeys.GetControlKeyDown(ControlKeys.TIME_PAUSE_TOGGLE) && !locked)
+        if (SDTControls.GetControlKeyDown(SDTControls.PAUSE_TOGGLE) && !LOCKED)
             TogglePause();
     }
 
@@ -49,39 +49,39 @@ public class TimeManager : Singleton<TimeManager>
 
     public static void TogglePause()
     {
-        paused = !paused;
-        OnTogglePauseEvent.Invoke(paused);
+        PAUSED = !PAUSED;
+        OnTogglePauseEvent.Invoke(PAUSED);
     }
 
     public static void Pause()
     {
-        if (locked || paused) return;
-        paused = true;
-        OnTogglePauseEvent.Invoke(paused);
+        if (LOCKED || PAUSED) return;
+        PAUSED = true;
+        OnTogglePauseEvent.Invoke(PAUSED);
     }
 
     public static void Unpause()
     {
-        if (locked || !paused) return;
-        paused = false;
-        OnTogglePauseEvent.Invoke(paused);
+        if (LOCKED || !PAUSED) return;
+        PAUSED = false;
+        OnTogglePauseEvent.Invoke(PAUSED);
     }
 
     public static void Lock()
     {
-        locked = true;
+        LOCKED = true;
     }
 
     public static void Unlock()
     {
-        locked = false;
+        LOCKED = false;
     }
 
     IEnumerator PerDayTick()
     {
         while (Application.isPlaying)
         {
-            while (!paused)
+            while (!PAUSED)
             {
                 int old_week = Week;
                 int old_month = Month;

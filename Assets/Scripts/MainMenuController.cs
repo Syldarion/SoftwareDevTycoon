@@ -170,7 +170,7 @@ public class MainMenuController : Singleton<MainMenuController>
         month = Mathf.Clamp(month, 1, 12);
         year = Mathf.Clamp(year, 1970, 9999);
 
-        DateTime entered_date = new DateTime(year, month, day);
+        var entered_date = new DateTime(year, month, day);
 
         return entered_date;
     }
@@ -202,7 +202,7 @@ public class MainMenuController : Singleton<MainMenuController>
 
         DateTime birthday = ConstructDateFromInput();
 
-        Character new_character = new Character {
+        var new_character = new Character {
             Name = string.IsNullOrEmpty(CharacterNameInput.text) ? PersonNames.GetRandomName() : CharacterNameInput.text,
             Age = DateTime.Today.Month > birthday.Month ||
                   (DateTime.Today.Month == birthday.Month && DateTime.Today.Day > birthday.Day)
@@ -235,9 +235,9 @@ public class MainMenuController : Singleton<MainMenuController>
     public void OpenLoadGameMenu()
     {
         ClearMenu();
-        foreach(var save in SaveManager.Instance.Saves)
+        foreach(GameSave save in SaveManager.Instance.Saves)
         {
-            var save1 = save;
+            GameSave save1 = save;
             AddMessageToQueue(new MessageItem(save1.Name, "load", save1.LoadGame));
         }
         AddMessageToQueue(new MessageItem("main_menu", "exec", OpenBaseMenu));

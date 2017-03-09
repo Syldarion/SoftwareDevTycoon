@@ -142,7 +142,7 @@ public class CompanyManager : Singleton<CompanyManager>
             Destroy(child.gameObject);
         foreach (Office office in Company.MyCompany.CompanyOffices)
         {
-            var new_office_item = Instantiate(CompanyOfficeItemPrefab);
+            CompanyOfficeItem new_office_item = Instantiate(CompanyOfficeItemPrefab);
             new_office_item.PopulateData(office);
             new_office_item.transform.SetParent(CurrentOfficesList, false);
         }
@@ -156,7 +156,7 @@ public class CompanyManager : Singleton<CompanyManager>
             Destroy(child.gameObject);
         for (int i = 0; i < OFFICES_TO_GENERATE; i++)
         {
-            var new_office_item = Instantiate(CompanyOfficeItemPrefab);
+            CompanyOfficeItem new_office_item = Instantiate(CompanyOfficeItemPrefab);
             new_office_item.PopulateData(Office.GenerateOffice());
             new_office_item.transform.SetParent(OfficesForSaleList, false);
         }
@@ -187,7 +187,7 @@ public class CompanyManager : Singleton<CompanyManager>
             Destroy(child.gameObject);
         foreach (Employee employee in Company.MyCompany.EmployeeList())
         {
-            var new_employee_item = Instantiate(EmployeeItemPrefab);
+            EmployeeItem new_employee_item = Instantiate(EmployeeItemPrefab);
             new_employee_item.PopulateData(employee);
             new_employee_item.transform.SetParent(CurrentEmployeesList, false);
         }
@@ -201,7 +201,7 @@ public class CompanyManager : Singleton<CompanyManager>
             Destroy(child.gameObject);
         for (int i = 0; i < EMPLOYEES_TO_GENERATE; i++)
         {
-            var new_employee_item = Instantiate(EmployeeItemPrefab);
+            EmployeeItem new_employee_item = Instantiate(EmployeeItemPrefab);
             new_employee_item.PopulateData(Employee.GenerateEmployee());
             new_employee_item.transform.SetParent(AvailableEmployeesList, false);
         }
@@ -216,7 +216,7 @@ public class CompanyManager : Singleton<CompanyManager>
 
         OfficeDetailLocation.text = string.Format("Office Location\n{0}", office.OfficeLocation.Name);
         OfficeDetailUpkeepCost.text = string.Format("Upkeep: ${0}", office.TotalUpkeepCost);
-        StringBuilder bonus_string_builder = new StringBuilder("Office Bonuses\n");
+        var bonus_string_builder = new StringBuilder("Office Bonuses\n");
         for(int i = 0; i < office.QualityBonuses.Length; i++)
             if(office.QualityBonuses[i] > 0.0f || office.QualityBonuses[i] < 0.0f)
                 bonus_string_builder.AppendLine(string.Format("{0:P} {1} quality bonus", office.QualityBonuses[i],
@@ -289,7 +289,7 @@ public class CompanyManager : Singleton<CompanyManager>
         //set employee gender image after you make images for the slot
         EmployeeDetailSkillLevels.text = string.Join("\n",
             employee.Skills.Skills.Select(x => {
-                StringBuilder skill_builder = new StringBuilder();
+                var skill_builder = new StringBuilder();
                 skill_builder.Append(SkillInfo.SKILL_NAME[(int)x.Skill]);
                 int spaces = 18 - SkillInfo.SKILL_NAME[(int)x.Skill].Length;
                 skill_builder.Append(' ', spaces);
@@ -409,12 +409,11 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenAddFeaturePanel(Office office)
     {
-        List<OfficeFeature> available_features = office.AvailableFeatures().ToList();
+        var available_features = office.AvailableFeatures().ToList();
 
         if(available_features.Count <= 0) return;
 
-        List<string> features_to_strings =
-            available_features.Select(x => x.Name).ToList();
+        var features_to_strings = available_features.Select(x => x.Name).ToList();
 
         FeatureListDropdown.ClearOptions();
         FeatureListDropdown.AddOptions(features_to_strings);
@@ -468,7 +467,7 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void OpenMoveEmployeePanel(Employee employee)
     {
-        List<string> office_list = Company.MyCompany.CompanyOffices.Select(x => x.OfficeLocation.Name).ToList();
+        var office_list = Company.MyCompany.CompanyOffices.Select(x => x.OfficeLocation.Name).ToList();
 
         MoveLocationDropdown.ClearOptions();
         MoveLocationDropdown.AddOptions(office_list);

@@ -98,8 +98,10 @@ public class Office
 
     public static Office GenerateOffice()
     {
-        Office new_office = new Office(Random.Range(MIN_OFFICE_SPACE, MAX_OFFICE_SPACE));
-        new_office.OfficeLocation = Location.GetRandomLocation();
+        var new_office = new Office(Random.Range(MIN_OFFICE_SPACE, MAX_OFFICE_SPACE))
+        {
+            OfficeLocation = Location.GetRandomLocation()
+        };
         return new_office;
     }
 }

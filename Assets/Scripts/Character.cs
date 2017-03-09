@@ -136,7 +136,7 @@ public class Character : Person
 
     public void WorkOnContract()
     {
-        SkillList work = new SkillList();
+        var work = new SkillList();
         for(int i = 0; i < work.Length; i++)
             work[i] = Skills[i] + Random.Range(-1, 2);
         

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public static class ServerMessageCodes
 {
@@ -19,38 +20,63 @@ public static class ServerMessageCodes
 
 public static class ColorBlocks
 {
-    private static float highlightMult = 245.0f / 255.0f;
-    private static float pressedMult = 200.0f / 255.0f;
+    private static float HIGHLIGHT_MULT = 245.0f / 255.0f;
+    private static float PRESSED_MULT = 200.0f / 255.0f;
 
     public static ColorBlock GetColorBlock(Color color)
     {
-        ColorBlock block = new ColorBlock()
+        var block = new ColorBlock()
         {
             colorMultiplier = 1,
             disabledColor = new Color(200.0f, 200.0f, 200.0f, 128.0f) / 255.0f,
             fadeDuration = 0.1f,
-            highlightedColor = color * highlightMult,
+            highlightedColor = color * HIGHLIGHT_MULT,
             normalColor = color,
-            pressedColor = color * pressedMult
+            pressedColor = color * PRESSED_MULT
         };
 
         return block;
     }
 }
 
-public static class ControlKeys
+public static class SDTControls
 {
     public struct ControlKey
     {
         public KeyCode Key;
         public KeyCode Modifier;
+
+        public ControlKey(KeyCode k, KeyCode m)
+        {
+            Key = k;
+            Modifier = m;
+        }
     }
 
-    public static ControlKey OPEN_CONTRACT_PANEL = new ControlKey() {Key = KeyCode.C, Modifier = KeyCode.LeftShift};
-    public static ControlKey OPEN_JOB_PANEL = new ControlKey() {Key = KeyCode.J, Modifier = KeyCode.LeftShift};
-    public static ControlKey PRINT_JOB_DEBUG = new ControlKey() {Key = KeyCode.J, Modifier = KeyCode.LeftControl};
-    public static ControlKey TIME_PAUSE_TOGGLE = new ControlKey() {Key = KeyCode.Space, Modifier = KeyCode.None};
-    public static ControlKey OPEN_SCHEDULE_PANEL = new ControlKey() {Key = KeyCode.S, Modifier = KeyCode.LeftShift};
+    private static Dictionary<string, ControlKey> CONTROLS = new Dictionary<string, ControlKey>()
+    {
+        {"OpenContractPanel", new ControlKey(KeyCode.C, KeyCode.LeftShift) },
+        {"OpenJobPanel", new ControlKey(KeyCode.J, KeyCode.LeftShift) },
+        {"PauseToggle", new ControlKey(KeyCode.Space, KeyCode.None) },
+    };
+
+    public static ControlKey OPEN_CONTRACT_PANEL
+    {
+        get { return CONTROLS["OpenContractPanel"]; }
+        set { CONTROLS["OpenContractPanel"] = value; }
+    }
+
+    public static ControlKey OPEN_JOB_PANEL
+    {
+        get { return CONTROLS["OpenJobPanel"]; }
+        set { CONTROLS["OpenJobPanel"] = value; }
+    }
+
+    public static ControlKey PAUSE_TOGGLE
+    {
+        get { return CONTROLS["PauseToggle"]; }
+        set { CONTROLS["PauseToggle"] = value; }
+    }
 
     public static bool GetControlKey(ControlKey control)
     {
@@ -74,6 +100,26 @@ public static class ControlKeys
             return Input.GetKeyUp(control.Key);
 
         return Input.GetKey(control.Modifier) && Input.GetKeyUp(control.Key);
+    }
+
+    public static void LoadControlKeys()
+    {
+        foreach(string value in CONTROLS.Keys)
+        {
+            var control = new ControlKey(
+                (KeyCode)PlayerPrefs.GetInt(string.Format("{0}Key", value)),
+                (KeyCode)PlayerPrefs.GetInt(string.Format("{0}Mod", value)));
+            CONTROLS[value] = control;
+        }
+    }
+
+    public static void SaveControlKeys()
+    {
+        foreach(string value in CONTROLS.Keys)
+        {
+            PlayerPrefs.SetInt(string.Format("{0}Key", value), (int)CONTROLS[value].Key);
+            PlayerPrefs.SetInt(string.Format("{0}Mod", value), (int)CONTROLS[value].Modifier);
+        }
     }
 }
 

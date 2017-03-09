@@ -50,11 +50,12 @@ public class Company
     {
         if (MyCompany != null) return MyCompany;
 
-        Company new_company = new Company(name);
+        var new_company = new Company(name);
 
-        Office init_office = new Office(initSpace);
-        init_office.OfficeLocation = Character.MyCharacter.CurrentLocation;
-
+        var init_office = new Office(initSpace)
+        {
+            OfficeLocation = Character.MyCharacter.CurrentLocation
+        };
         new_company.AddOffice(init_office);
 
         int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * init_office.Space);
@@ -171,7 +172,7 @@ public class Company
 
     public void WorkOnActiveContract()
     {
-        SkillList work_sums = new SkillList();
+        var work_sums = new SkillList();
         for (int i = 0; i < SkillInfo.COUNT; i++)
         {
             foreach (Office office in CompanyOffices)
@@ -188,7 +189,7 @@ public class Company
 
     public void WorkOnProject()
     {
-        SkillList work_sums = new SkillList();
+        var work_sums = new SkillList();
         for (int i = 0; i < SkillInfo.COUNT; i++)
         {
             foreach (Office office in CompanyOffices)

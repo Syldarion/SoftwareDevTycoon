@@ -29,7 +29,7 @@ public class ContractManager : Singleton<ContractManager>
 
     void Update()
     {
-        if (ControlKeys.GetControlKeyDown(ControlKeys.OPEN_CONTRACT_PANEL))
+        if (SDTControls.GetControlKeyDown(SDTControls.OPEN_CONTRACT_PANEL))
             OpenContractForm();
 
         if (Input.GetKeyDown(KeyCode.Escape))

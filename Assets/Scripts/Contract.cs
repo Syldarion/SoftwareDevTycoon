@@ -160,7 +160,7 @@ public class Contract
         for (int i = 0; i < generated_contracts.Length; i++)
         {
             int days_to_complete = Random.Range(7, 28);
-            ContractTemplate template = ContractTemplate.GetRandomTemplate();
+            var template = ContractTemplate.GetRandomTemplate();
             SkillLevel[] skills_needed = new SkillLevel[template.SkillsNeeded.Length];
 
             for(int j = 0; j < skills_needed.Length; j++)
@@ -171,7 +171,7 @@ public class Contract
                 skills_needed[j] = new SkillLevel(template.SkillsNeeded[j], skill_sum);
             }
             
-            SkillList contract_reqs = new SkillList(skills_needed);
+            var contract_reqs = new SkillList(skills_needed);
 
             int payout = Mathf.CeilToInt(skills_needed.Sum(x => x.Level) * 8 * Random.Range(0.8f, 1.2f));
             if (reputation < 10) payout = Mathf.CeilToInt(payout * 0.5f);
@@ -230,7 +230,7 @@ public class Contract
     {
         unchecked
         {
-            var hash_code = (Name != null ? Name.GetHashCode() : 0);
+            int hash_code = (Name != null ? Name.GetHashCode() : 0);
             hash_code = (hash_code * 397) ^ (SkillPointsRemaining != null ? SkillPointsRemaining.GetHashCode() : 0);
             hash_code = (hash_code * 397) ^ InitialPointsNeeded;
             hash_code = (hash_code * 397) ^ DaysToComplete;

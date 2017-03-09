@@ -6,12 +6,13 @@ using UnityEngine.SceneManagement;
 
 public class InGameMenuManager : MonoBehaviour
 {
-    public CanvasGroup MenuOptionsPanel;
+    public RectTransform MenuPanel;
 
-    private InputField saveNameField;
+    private bool menuOpen;
 
     void Awake()
     {
+        menuOpen = false;
     }
 
     void Start()
@@ -26,30 +27,38 @@ public class InGameMenuManager : MonoBehaviour
 
     public void ToggleMenu()
     {
-        SDTUIController.Instance.OpenCanvas(MenuOptionsPanel, false, true);
+        StartCoroutine(menuOpen ? CloseMenu() : OpenMenu());
     }
 
-    public void ToggleButtons(RectTransform mainSibling)
+    private IEnumerator OpenMenu()
     {
-        Button[] sibling_buttons = UIUtilities.GetSiblingsOfType<Button>(mainSibling.gameObject);
-        if (sibling_buttons == null || sibling_buttons.Length == 0)
-            return;
-        bool is_active = sibling_buttons[0].gameObject.activeSelf;
-        foreach(Button sibling in sibling_buttons)
-            sibling.gameObject.SetActive(!is_active);
+        while(MenuPanel.anchoredPosition.x < 0)
+        {
+            Vector2 pos = MenuPanel.anchoredPosition;
+            pos.x += 500.0f * Time.deltaTime;
+            MenuPanel.anchoredPosition = pos;
+            yield return null;
+        }
+        MenuPanel.anchoredPosition.Set(0.0f, MenuPanel.anchoredPosition.y);
+        menuOpen = true;
     }
 
-    public void TrySaveGame()
+    private IEnumerator CloseMenu()
     {
-        DialogueBox.Instance.CreateNewDialogue("Save Game");
-        saveNameField = DialogueBox.Instance.AddInputField("Enter save name...");
-        DialogueBox.Instance.AddButton("Save", SaveGame);
+        while (MenuPanel.anchoredPosition.x > -500)
+        {
+            Vector2 pos = MenuPanel.anchoredPosition;
+            pos.x -= 500.0f * Time.deltaTime;
+            MenuPanel.anchoredPosition = pos;
+            yield return null;
+        }
+        MenuPanel.anchoredPosition.Set(-500.0f, MenuPanel.anchoredPosition.y);
+        menuOpen = false;
     }
 
     private void SaveGame()
     {
-        SaveManager.Instance.SaveGame(saveNameField.text);
-        DialogueBox.Instance.Cleanup();
+        SaveManager.Instance.SaveGame();
     }
 
     public void ExitGame()

@@ -69,7 +69,7 @@ public class JobManager : Singleton<JobManager>
 
     void Update()
     {
-        if (ControlKeys.GetControlKeyDown(ControlKeys.OPEN_JOB_PANEL))
+        if (SDTControls.GetControlKeyDown(SDTControls.OPEN_JOB_PANEL))
         {
             if (Job.MyJob == null)
                 OpenJobSearch();
@@ -108,7 +108,7 @@ public class JobManager : Singleton<JobManager>
         
         foreach (JobApplication application in ActiveApplications)
         {
-            var current = application;
+            JobApplication current = application;
 
             JobListItem new_list_item = Instantiate(JobListItemPrefab);
             new_list_item.transform.SetParent(ApplicationListTransform, false);
@@ -232,7 +232,7 @@ public class JobManager : Singleton<JobManager>
 
     public void CreateJobApplication(Job job)
     {
-        JobApplication new_application = new JobApplication(job);
+        var new_application = new JobApplication(job);
         ActiveApplications.Add(new_application);
         PopulateApplicationList();
     }

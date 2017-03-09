@@ -31,7 +31,7 @@ public class EscapeMenuManager : MonoBehaviour
 
     private void SaveGame()
     {
-        SaveManager.Instance.SaveGame(saveNameField.text);
+        SaveManager.Instance.SaveGame();
         DialogueBox.Instance.Cleanup();
     }
 
