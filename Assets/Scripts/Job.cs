@@ -12,33 +12,33 @@ public class JobTitle
     {
         new []
         {
-            new JobTitle("Junior Programmer", 0.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 4)})),
-            new JobTitle("Mid-Level Programmer", 0.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 6)})),
-            new JobTitle("Senior Programmer", 0.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 8)})),
+            new JobTitle("Junior Programmer", 1.0f, new SkillList(new []{new SkillLevel(Skill.Programming, 4)})),
+            new JobTitle("Mid-Level Programmer", 1.2f, new SkillList(new []{new SkillLevel(Skill.Programming, 6)})),
+            new JobTitle("Senior Programmer", 1.5f, new SkillList(new []{new SkillLevel(Skill.Programming, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Designer", 0.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 4)})),
-            new JobTitle("Mid-Level Designer", 0.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 6)})),
-            new JobTitle("Senior Designer", 0.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 8)})),
+            new JobTitle("Junior Designer", 1.0f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 4)})),
+            new JobTitle("Mid-Level Designer", 1.2f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 6)})),
+            new JobTitle("Senior Designer", 1.5f, new SkillList(new []{new SkillLevel(Skill.UserInterfaces, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Database Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 4)})),
-            new JobTitle("Mid-Level Database Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 6)})),
-            new JobTitle("Senior Database Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 8)})),
+            new JobTitle("Junior Database Administrator", 1.0f, new SkillList(new []{new SkillLevel(Skill.Databases, 4)})),
+            new JobTitle("Mid-Level Database Administrator", 1.2f, new SkillList(new []{new SkillLevel(Skill.Databases, 6)})),
+            new JobTitle("Senior Database Administrator", 1.5f, new SkillList(new []{new SkillLevel(Skill.Databases, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Network Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 4)})),
-            new JobTitle("Mid-Level Network Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 6)})),
-            new JobTitle("Senior Network Administrator", 0.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 8)})),
+            new JobTitle("Junior Network Administrator", 1.0f, new SkillList(new []{new SkillLevel(Skill.Networking, 4)})),
+            new JobTitle("Mid-Level Network Administrator", 1.2f, new SkillList(new []{new SkillLevel(Skill.Networking, 6)})),
+            new JobTitle("Senior Network Administrator", 1.5f, new SkillList(new []{new SkillLevel(Skill.Networking, 8)})),
         },
         new []
         {
-            new JobTitle("Junior Web Developer", 0.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 4)})),
-            new JobTitle("Mid-Level Web Developer", 0.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 6)})),
-            new JobTitle("Senior Web Developer", 0.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 8)})),
+            new JobTitle("Junior Web Developer", 1.0f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 4)})),
+            new JobTitle("Mid-Level Web Developer", 1.2f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 6)})),
+            new JobTitle("Senior Web Developer", 1.5f, new SkillList(new []{new SkillLevel(Skill.WebDevelopment, 8)})),
         }
     };
 
@@ -110,13 +110,18 @@ public class JobApplication
             .Sum(skill => Character.MyCharacter.Skills[skill.Skill].Level - skill.Level);
 
         Accepted = Random.Range(0, 101) < base_accept_chance;
+
+        JobManager.Instance.RefreshApplicationList();
+
+        InformationPanelManager.Instance.DisplayMessage(
+            string.Format("{0} responded to your application!", AppliedJob.CompanyName), 2.0f);
     }
 }
 
 [Serializable]
 public class Job
 {
-    public const int BASE_SEVERANCE_PAY = 20000;
+    public const int BASE_SEVERANCE_PAY = 10000;
 
     public static Job MyJob;
 
@@ -125,7 +130,7 @@ public class Job
     public JobTitle CurrentTitle;
     public Location JobLocation;
     public int SigningBonus;
-    public long HireDateBinary; //has to be this for serialization
+    public long HireDateBinary;
     public int Performance {get {return performance;} set { performance = Mathf.Clamp(value, 0, 100); } }
     private int performance;
 
@@ -155,11 +160,11 @@ public class Job
         HireDateBinary = TimeManager.CurrentDate.ToBinary();
         isPayWeek = false;
 
-        Character.MyCharacter.AdjustMoney(SigningBonus);
+        Character.MyCharacter.Funds += SigningBonus;
 
         if (JobLocation != Character.MyCharacter.CurrentLocation)
         {
-            Character.MyCharacter.AdjustMoney(5000);
+            Character.MyCharacter.Funds += 5000;
             Character.MyCharacter.CurrentLocation = JobLocation;
         }
 
@@ -199,7 +204,9 @@ public class Job
 
         if (!isPayWeek) return;
 
-        Character.MyCharacter.AdjustMoney(Mathf.CeilToInt(Salary / 26.0f));
+        Character.MyCharacter.Funds += Mathf.CeilToInt(Salary / 26.0f);
+
+        InformationPanelManager.Instance.DisplayMessage("Payday!", 1.0f);
     }
 
     public void GiveRaise(float percentage)
@@ -212,6 +219,9 @@ public class Job
         if (CurrentTitle.GetNextLevel() != null && CurrentTitle.GetNextLevel().MeetsRequirements(Character.MyCharacter))
             CurrentTitle = CurrentTitle.GetNextLevel();
         GiveRaise(0.2f);
+
+        InformationPanelManager.Instance.DisplayMessage(
+            string.Format("You've been promoted to {0} at {1}!", CurrentTitle.Name, CompanyName), 2.0f);
     }
 
     public void FirePlayer()
@@ -219,21 +229,24 @@ public class Job
         TimeManager.PerWeekEvent.RemoveListener(PayPlayer);
 
         TimeSpan job_length = TimeManager.CurrentDate - DateTime.FromBinary(HireDateBinary);
-        int total_sev_pay = BASE_SEVERANCE_PAY + Mathf.CeilToInt((job_length.Days / 30.0f) * (Salary / 12.0f));
+        int total_sev_pay = BASE_SEVERANCE_PAY + Mathf.CeilToInt((job_length.Days / 365.0f) * (Salary / 12.0f));
 
-        Character.MyCharacter.AdjustMoney(total_sev_pay);
+        Character.MyCharacter.Funds += total_sev_pay;
+
+        InformationPanelManager.Instance.DisplayMessage(
+            string.Format("You've been fired from {0}!", CompanyName), 2.0f);
     }
 
     public static Job[] GenerateJobs(int count)
     {
-        List<Job> jobs = new List<Job>();
+        var jobs = new List<Job>();
 
         int char_name_val = Character.MyCharacter.Name.Aggregate(0, (current, c) => current + c);
         Random.InitState(TimeManager.Month * TimeManager.Year * (char_name_val + 1));
 
         for (int i = 0; i < count; i++)
         {
-            Job new_job = new Job();
+            var new_job = new Job();
             new_job.CompanyName = CompanyNames.GetRandomName();
             new_job.Salary = Random.Range(50, 60) * 1000;
             new_job.CurrentTitle = JobTitle.GetRandomTitle();

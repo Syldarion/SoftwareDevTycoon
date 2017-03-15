@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Boo.Lang.Environments;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -44,12 +43,21 @@ public class CompanyManager : Singleton<CompanyManager>
     [Header("Company Projects UI")]
     public CanvasGroup ProjectsPanel;
     public RectTransform ProjectsList;
+    public Button CreateNewProjectButton;
+    public ProjectItem ProjectItemPrefab;
 
     [Header("Office Detail UI")]
     public Text OfficeDetailLocation;
-    public Text OfficeDetailUpkeepCost;
-    public Text OfficeDetailBonuses;
-    public ProgressBar OfficeDetailRemainingSpace;
+    public Text OfficeDetailUpkeep;
+    public Text OfficeDetailCost;
+    public Text OfficeDetailBonusPRG;
+    public Text OfficeDetailBonusUIX;
+    public Text OfficeDetailBonusDBS;
+    public Text OfficeDetailBonusNTW;
+    public Text OfficeDetailBonusWEB;
+    public Text OfficeDetailBonusMorale;
+    public Text OfficeDetailBonusSales;
+    public Text OfficeDetailSpace;
     public Button OfficeAddFeatureButton;
     public Button OfficeAddSpaceButton;
     public Button OfficeSellButton;
@@ -57,16 +65,38 @@ public class CompanyManager : Singleton<CompanyManager>
 
     [Header("Employee Detail UI")]
     public Text EmployeeDetailNameAge;
-    public Image EmployeeDetailGender;
-    public Text EmployeeDetailSkillLevels;
     public Text EmployeeDetailTitle;
+    public Text EmployeeDetailSkillPRG;
+    public Text EmployeeDetailSkillUIX;
+    public Text EmployeeDetailSkillDBS;
+    public Text EmployeeDetailSkillNTW;
+    public Text EmployeeDetailSkillWEB;
     public Text EmployeeDetailPay;
+    public InputField EmployeeDetailHours;
     public Text EmployeeDetailHireDate;
-    public Text EmployeeDetailPerformance;
     public Button EmployeeHireButton;
     public Button EmployeeFireButton;
     public Button EmployeeTrainButton;
     public Button EmployeeMoveButton;
+
+    [Header("Project Detail UI")]
+    public RectTransform ProjectDetailPanel;
+    public Text ProjectNameText;
+    public Text ProjectStatusText;
+    public Text ProjectCurrentPayoutText;
+    public Text ProjectQualityPRGText;
+    public Text ProjectQualityUIXText;
+    public Text ProjectQualityDBSText;
+    public Text ProjectQualityNTWText;
+    public Text ProjectQualityWEBText;
+    public Button ProjectSetActiveButton;
+    public Button ProjectSellButton;
+
+    [Header("New Project UI")]
+    public RectTransform NewProjectPanel;
+    public InputField NewProjectNameInput;
+    public Button NewProjectCreateButton;
+    public Button NewProjectCancelButton;
 
     [Header("Add Feature UI")]
     public CanvasGroup AddFeaturePanel;
@@ -107,6 +137,7 @@ public class CompanyManager : Singleton<CompanyManager>
             CloseNewCompanyPanel();
             CloseCompanyOfficesPanel();
             CloseCompanyEmployeesPanel();
+            CloseCompanyProjectsPanel();
         }
     }
 
@@ -134,6 +165,38 @@ public class CompanyManager : Singleton<CompanyManager>
     public void CloseCompanyOfficesPanel()
     {
         SDTUIController.Instance.CloseCanvas(OfficesPanel);
+    }
+
+    public void OpenCompanyEmployeesPanel()
+    {
+        if (Company.MyCompany == null) return;
+
+        RefreshCurrentEmployeesList();
+        RefreshAvailableEmployeesList();
+
+        PopulateEmployeeDetail();
+
+        SDTUIController.Instance.OpenCanvas(EmployeesPanel);
+    }
+
+    public void CloseCompanyEmployeesPanel()
+    {
+        SDTUIController.Instance.CloseCanvas(EmployeesPanel);
+    }
+
+    public void OpenCompanyProjectsPanel()
+    {
+        if (Company.MyCompany == null) return;
+
+        if (Company.MyCompany.ActiveCompanyProject != null)
+            PopulateProjectDetail(Company.MyCompany.ActiveCompanyProject);
+
+        SDTUIController.Instance.OpenCanvas(ProjectsPanel);
+    }
+
+    public void CloseCompanyProjectsPanel()
+    {
+        SDTUIController.Instance.CloseCanvas(ProjectsPanel);
     }
 
     public void RefreshCurrentOfficesList()
@@ -164,23 +227,6 @@ public class CompanyManager : Singleton<CompanyManager>
         PopulateOfficeDetail(Company.MyCompany.CompanyOffices[0]);
     }
 
-    public void OpenCompanyEmployeesPanel()
-    {
-        if (Company.MyCompany == null) return;
-
-        RefreshCurrentEmployeesList();
-        RefreshAvailableEmployeesList();
-
-        PopulateEmployeeDetail();
-
-        SDTUIController.Instance.OpenCanvas(EmployeesPanel);
-    }
-
-    public void CloseCompanyEmployeesPanel()
-    {
-        SDTUIController.Instance.CloseCanvas(EmployeesPanel);
-    }
-
     public void RefreshCurrentEmployeesList()
     {
         foreach (Transform child in CurrentEmployeesList)
@@ -209,27 +255,38 @@ public class CompanyManager : Singleton<CompanyManager>
         PopulateEmployeeDetail();
     }
 
+    public void RefreshProjectsList()
+    {
+        foreach (Transform child in ProjectsList)
+            Destroy(child.gameObject);
+        foreach(Project project in Company.MyCompany.CompanyProjects.OrderBy(x => x.CurrentStatus))
+        {
+            ProjectItem new_project_item = Instantiate(ProjectItemPrefab);
+            new_project_item.PopulateData(project);
+            new_project_item.transform.SetParent(ProjectsList, false);
+        }
+
+        CreateNewProjectButton.transform.SetAsLastSibling();
+    }
+
     public void PopulateOfficeDetail(Office office)
     {
         if (office == null) return;
         bool is_company_office = Company.MyCompany.CompanyOffices.Contains(office);
 
-        OfficeDetailLocation.text = string.Format("Office Location\n{0}", office.OfficeLocation.Name);
-        OfficeDetailUpkeepCost.text = string.Format("Upkeep: ${0}", office.TotalUpkeepCost);
-        var bonus_string_builder = new StringBuilder("Office Bonuses\n");
-        for(int i = 0; i < office.QualityBonuses.Length; i++)
-            if(office.QualityBonuses[i] > 0.0f || office.QualityBonuses[i] < 0.0f)
-                bonus_string_builder.AppendLine(string.Format("{0:P} {1} quality bonus", office.QualityBonuses[i],
-                    SkillInfo.SKILL_ABBR[i]));
-        if(office.MoraleModifier > 0.0f || office.MoraleModifier < 0.0f)
-            bonus_string_builder.AppendLine(string.Format("{0:P} employee morale", office.MoraleModifier));
-        if(office.SalesModifier > 0.0f || office.SalesModifier < 0.0f)
-            bonus_string_builder.AppendLine(string.Format("{0:P} sales bonus", office.SalesModifier));
-        OfficeDetailBonuses.text = bonus_string_builder.ToString();
-        float space_percentage = (float)office.RemainingSpace / office.Space;
-        string space_string = string.Format("{0} / {1}", office.RemainingSpace, office.Space);
-        OfficeDetailRemainingSpace.SetProgress(space_percentage);
-        OfficeDetailRemainingSpace.SetBarText(space_string, true);
+        OfficeDetailLocation.text = office.OfficeLocation.Name;
+        OfficeDetailUpkeep.text = office.TotalUpkeepCost.ToString("C0");
+        OfficeDetailCost.text = is_company_office
+            ? office.SellPrice.ToString("C0")
+            : office.PurchasePrice.ToString("C0");
+        OfficeDetailBonusPRG.text = office.QualityBonuses[0].ToString("P");
+        OfficeDetailBonusUIX.text = office.QualityBonuses[1].ToString("P");
+        OfficeDetailBonusDBS.text = office.QualityBonuses[2].ToString("P");
+        OfficeDetailBonusNTW.text = office.QualityBonuses[3].ToString("P");
+        OfficeDetailBonusWEB.text = office.QualityBonuses[4].ToString("P");
+        OfficeDetailBonusMorale.text = office.MoraleModifier.ToString("P");
+        OfficeDetailBonusSales.text = office.SalesModifier.ToString("P");
+        OfficeDetailSpace.text = string.Format("{0}/{1}", office.RemainingSpace, office.Space);
 
         OfficeAddFeatureButton.onClick.RemoveAllListeners();
         OfficeAddSpaceButton.onClick.RemoveAllListeners();
@@ -244,23 +301,22 @@ public class CompanyManager : Singleton<CompanyManager>
         {
             OpenAddSpacePanel(office);
         });
-        OfficeBuyButton.GetComponentInChildren<Text>().text = string.Format("Buy Office: ${0}", office.PurchasePrice);
         OfficeBuyButton.onClick.AddListener(() =>
         {
             Company.MyCompany.AddOffice(office);
-            Company.MyCompany.AdjustFunds(-office.PurchasePrice);
+            Company.MyCompany.Funds -= office.PurchasePrice;
             foreach(Transform child in OfficesForSaleList)
                 if(child.GetComponent<CompanyOfficeItem>().ItemOffice == office)
                     Destroy(child.gameObject);
             RefreshCurrentOfficesList();
             PopulateOfficeDetail(office);
         });
-        OfficeSellButton.GetComponentInChildren<Text>().text = string.Format("Sell Office: ${0}", office.SellPrice);
         OfficeSellButton.onClick.AddListener(() =>
         {
             Company.MyCompany.RemoveOffice(office);
-            Company.MyCompany.AdjustFunds(office.SellPrice);
+            Company.MyCompany.Funds += office.SellPrice;
             RefreshCurrentOfficesList();
+            PopulateOfficeDetail(office);
         });
 
         OfficeAddFeatureButton.gameObject.SetActive(is_company_office && office.RemainingSpace > 0);
@@ -286,27 +342,37 @@ public class CompanyManager : Singleton<CompanyManager>
 
         EmployeeDetailNameAge.text = string.Format(
             "{0} ({1})", employee.Name, employee.Age);
-        //set employee gender image after you make images for the slot
-        EmployeeDetailSkillLevels.text = string.Join("\n",
-            employee.Skills.Skills.Select(x => {
-                var skill_builder = new StringBuilder();
-                skill_builder.Append(SkillInfo.SKILL_NAME[(int)x.Skill]);
-                int spaces = 18 - SkillInfo.SKILL_NAME[(int)x.Skill].Length;
-                skill_builder.Append(' ', spaces);
-                skill_builder.Append(x.Level);
-                return skill_builder.ToString();
-            }).ToArray());
         EmployeeDetailTitle.text = employee.CurrentTitle.Name;
-        EmployeeDetailPay.text = employee.Salary.ToString("C");
-        EmployeeDetailHireDate.text = works_for_company
-                                          ? DateTime.FromBinary(employee.HireDateBinary).ToLongDateString()
-                                          : string.Empty;
-        //EmployeeDetailPerformance.text
+
+        EmployeeDetailSkillPRG.text = employee.Skills[Skill.Programming].Level.ToString();
+        EmployeeDetailSkillUIX.text = employee.Skills[Skill.UserInterfaces].Level.ToString();
+        EmployeeDetailSkillDBS.text = employee.Skills[Skill.Databases].Level.ToString();
+        EmployeeDetailSkillNTW.text = employee.Skills[Skill.Networking].Level.ToString();
+        EmployeeDetailSkillWEB.text = employee.Skills[Skill.WebDevelopment].Level.ToString();
+
+        EmployeeDetailPay.text = employee.Salary.ToString("C0");
+        EmployeeDetailHours.text = works_for_company 
+            ? employee.WorkingHours.ToString()
+            : "0";
+        EmployeeDetailHireDate.text = works_for_company 
+            ? DateTime.FromBinary(employee.HireDateBinary).ToString("dd/MM/yyyy") 
+            : "0";
+
+        EmployeeDetailHours.onEndEdit.RemoveAllListeners();
         EmployeeHireButton.onClick.RemoveAllListeners();
         EmployeeFireButton.onClick.RemoveAllListeners();
         EmployeeTrainButton.onClick.RemoveAllListeners();
         EmployeeMoveButton.onClick.RemoveAllListeners();
 
+        EmployeeDetailHours.onEndEdit.AddListener(x =>
+        {
+            if (!works_for_company)
+                EmployeeDetailHours.text = "0";
+            else
+                employee.SetWorkingHours(int.Parse(x));
+
+            PopulateEmployeeDetail(employee);
+        });
         EmployeeHireButton.onClick.AddListener(() =>
         {
             Company.MyCompany.HireEmployee(employee);
@@ -320,10 +386,11 @@ public class CompanyManager : Singleton<CompanyManager>
         {
             Company.MyCompany.FireEmployee(employee);
             RefreshCurrentEmployeesList();
+            PopulateEmployeeDetail(employee);
         });
         EmployeeTrainButton.onClick.AddListener(() =>
         {
-            Company.MyCompany.TrainEmployee(employee);
+            TryTrainEmployee(employee);
         });
         EmployeeMoveButton.onClick.AddListener(() =>
         {
@@ -334,6 +401,84 @@ public class CompanyManager : Singleton<CompanyManager>
         EmployeeFireButton.gameObject.SetActive(works_for_company);
         EmployeeTrainButton.gameObject.SetActive(works_for_company);
         EmployeeMoveButton.gameObject.SetActive(works_for_company);
+    }
+
+    public void PopulateProjectDetail(Project project)
+    {
+        if (project == null) return;
+
+        if (NewProjectPanel.gameObject.activeSelf)
+            NewProjectPanel.gameObject.SetActive(false);
+        ProjectDetailPanel.gameObject.SetActive(true);
+
+        ProjectNameText.text = project.Name;
+        ProjectStatusText.text = project.ProjectStatus;
+        ProjectCurrentPayoutText.text = project.CurrentPayout.ToString("C0");
+
+        ProjectQualityPRGText.text = project.QualityLevels[Skill.Programming].Level.ToString();
+        ProjectQualityUIXText.text = project.QualityLevels[Skill.UserInterfaces].Level.ToString();
+        ProjectQualityDBSText.text = project.QualityLevels[Skill.Databases].Level.ToString();
+        ProjectQualityNTWText.text = project.QualityLevels[Skill.Networking].Level.ToString();
+        ProjectQualityWEBText.text = project.QualityLevels[Skill.WebDevelopment].Level.ToString();
+
+        ProjectSetActiveButton.onClick.RemoveAllListeners();
+        ProjectSellButton.onClick.RemoveAllListeners();
+
+        ProjectSetActiveButton.onClick.AddListener(() =>
+        {
+            Company.MyCompany.SetActiveProject(project);
+            RefreshProjectsList();
+            PopulateProjectDetail(project);
+        });
+        ProjectSellButton.onClick.AddListener(() =>
+        {
+            project.CompleteProject();
+            Company.MyCompany.SetActiveProject(Company.MyCompany.CompanyProjects.FirstOrDefault(x => x.CurrentStatus == Project.Status.Halted));
+            RefreshProjectsList();
+            PopulateProjectDetail(project);
+        });
+
+        ProjectSetActiveButton.gameObject.SetActive(project != Company.MyCompany.ActiveCompanyProject);
+        ProjectSellButton.gameObject.SetActive(
+            project.CurrentStatus == Project.Status.InProgress ||
+            project.CurrentStatus == Project.Status.Halted);
+    }
+
+    public void OpenNewProjectPanel()
+    {
+        if (ProjectDetailPanel.gameObject.activeSelf)
+            ProjectDetailPanel.gameObject.SetActive(false);
+        NewProjectPanel.gameObject.SetActive(true);
+
+        NewProjectNameInput.text = string.Empty;
+    }
+
+    public void CreateNewProject()
+    {
+        string new_project_name = NewProjectNameInput.text;
+        new_project_name = new_project_name.Trim();
+        if (string.IsNullOrEmpty(new_project_name))
+            new_project_name = string.Format("Default-{0}", TimeManager.CurrentDate.ToString("ddMMyy"));
+
+        var new_project = new Project(new_project_name);
+        Company.MyCompany.CompanyProjects.Add(new_project);
+
+        if(Company.MyCompany.ActiveCompanyProject == null)
+        {
+            Company.MyCompany.ActiveCompanyProject = new_project;
+            new_project.CurrentStatus = Project.Status.InProgress;
+        }
+
+        CloseNewProjectPanel();
+
+        RefreshProjectsList();
+        PopulateProjectDetail(new_project);
+    }
+
+    public void CloseNewProjectPanel()
+    {
+        NewProjectPanel.gameObject.SetActive(false);
+        ProjectDetailPanel.gameObject.SetActive(true);
     }
 
     public void UpdateNewCompanyCostText()
@@ -348,10 +493,10 @@ public class CompanyManager : Singleton<CompanyManager>
         NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
         
         CreateCompanyButton.onClick.RemoveListener(CreateCompany);
-        if(total_cost <= Character.MyCharacter.Money && total_cost != 0)
+        if(total_cost <= Character.MyCharacter.Funds && total_cost != 0)
             CreateCompanyButton.onClick.AddListener(CreateCompany);
         CreateCompanyButton.colors =
-            ColorBlocks.GetColorBlock(total_cost <= Character.MyCharacter.Money ? Color.green : Color.red);
+            ColorBlocks.GetColorBlock(total_cost <= Character.MyCharacter.Funds ? Color.green : Color.red);
     }
 
     public void CreateCompany()
@@ -373,6 +518,23 @@ public class CompanyManager : Singleton<CompanyManager>
                                                      DialogueBox.Instance.Cleanup();
                                                  },
                                                  () => { DialogueBox.Instance.Cleanup(); });
+    }
+
+    public void TryTrainEmployee(Employee employee)
+    {
+        int skill_sum = Mathf.Clamp(employee.Skills.Sum(), 1, int.MaxValue);
+        int training_cost = Company.TRAINING_COST_MULTIPLIER * skill_sum;
+
+        DialogueBox.Instance.CreateYesNoDialogue(
+            string.Format("Train {0} for {1:C0}?", employee.Name, training_cost),
+            () =>
+            {
+                Company.MyCompany.TrainEmployee(employee, training_cost);
+                DialogueBox.Instance.Cleanup();
+            },
+            () => DialogueBox.Instance.Cleanup());
+
+        PopulateEmployeeDetail(employee);
     }
 
     public void OnExpandCurrentOfficesClick()
@@ -452,7 +614,7 @@ public class CompanyManager : Singleton<CompanyManager>
         AddSpaceButton.onClick.AddListener(() =>
         {
             int extra_space = int.Parse(ExtraSpaceInput.text);
-            Company.MyCompany.AdjustFunds(-office.IncreaseOfficeSpace(extra_space));
+            Company.MyCompany.Funds -= office.IncreaseOfficeSpace(extra_space);
             RefreshCurrentOfficesList();
             PopulateOfficeDetail(office);
             AddSpacePanel.alpha = 0;
@@ -496,7 +658,7 @@ public class CompanyManager : Singleton<CompanyManager>
             int total_cost = COST_PER_MILE_MOVED * 
                 Location.GetDistance(current_office.OfficeLocation, selected_office.OfficeLocation);
             current_office.MoveEmployee(employee, selected_office);
-            Company.MyCompany.AdjustFunds(-total_cost);
+            Company.MyCompany.Funds -= total_cost;
 
             MoveEmployeePanel.alpha = 0;
             MoveEmployeePanel.interactable = false;

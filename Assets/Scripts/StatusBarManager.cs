@@ -7,9 +7,11 @@ public class StatusBarManager : Singleton<StatusBarManager>
 {
     public Text CurrentFundsText;
     public Text CurrentDateText;
-    public Text CompanyNameText;
-    public Text CompanyOfficeCountText;
-    public Text CompanyEmployeeCountText;
+
+    public Color PositiveFundsColor;
+    public Color NegativeFundsColor;
+    public Color PausedTimeColor;
+    public Color UnpausedTimeColor;
 
     void Awake()
     {
@@ -18,10 +20,7 @@ public class StatusBarManager : Singleton<StatusBarManager>
 
     void Start()
     {
-        TimeManager.PerDayEvent.AddListener(UpdateFunds);
-        TimeManager.PerDayEvent.AddListener(UpdateTime);
-        TimeManager.PerDayEvent.AddListener(UpdateCompanyInfo);
-        TimeManager.OnTogglePauseEvent.AddListener(UpdateTimeColor);
+        SetupEvents();
     }
 
     void Update()
@@ -29,21 +28,16 @@ public class StatusBarManager : Singleton<StatusBarManager>
 
     }
 
-    public void UpdateFunds()
+    public void SetupEvents()
     {
-        int funds_value = Company.MyCompany == null ? Character.MyCharacter.Money : Company.MyCompany.Funds;
-        CurrentFundsText.text = funds_value.ToString("C");
-        CurrentFundsText.color = funds_value < 0 ? Color.red : Color.black;
+        TimeManager.PerDayEvent.AddListener(UpdateTime);
+        TimeManager.OnTogglePauseEvent.AddListener(UpdateTimeColor);
     }
 
-    public void UpdateCompanyInfo()
+    public void UpdateFunds(int value)
     {
-        if (Company.MyCompany == null)
-            return;
-
-        CompanyNameText.text = Company.MyCompany.Name;
-        CompanyOfficeCountText.text = Company.MyCompany.CompanyOffices.Count.ToString();
-        CompanyEmployeeCountText.text = Company.MyCompany.TeamSize.ToString();
+        CurrentFundsText.text = value.ToString("C0");
+        CurrentFundsText.color = value < 0 ? NegativeFundsColor : PositiveFundsColor;
     }
 
     public void UpdateTime()
@@ -53,6 +47,6 @@ public class StatusBarManager : Singleton<StatusBarManager>
 
     public void UpdateTimeColor(bool paused)
     {
-        CurrentDateText.color = paused ? Color.red : Color.black;
+        CurrentDateText.color = paused ? PausedTimeColor : UnpausedTimeColor;
     }
 }

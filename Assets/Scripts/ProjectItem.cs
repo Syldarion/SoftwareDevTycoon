@@ -2,40 +2,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ProjectItem : MonoBehaviour
+public class ProjectItem : MonoBehaviour, IPointerDownHandler
 {
+    public Project ItemProject;
+
     public Text ProjectNameText;
     public Text ProjectStatusText;
-    public Text ProjectQualityText;
-    public Text ProjectPayoutText;
 
     void Start() {}
 
     void Update() {}
 
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        CompanyManager.Instance.PopulateProjectDetail(ItemProject);
+    }
+
     public void PopulateData(Project project)
     {
+        ItemProject = project;
         ProjectNameText.text = project.Name;
-        switch(project.CurrentStatus)
-        {
-            case Project.Status.InProgress:
-                ProjectStatusText.text = "In Progress";
-                break;
-            case Project.Status.Halted:
-                ProjectStatusText.text = "Halted";
-                break;
-            case Project.Status.OnSale:
-                ProjectStatusText.text = "On Sale";
-                break;
-            case Project.Status.Retired:
-                ProjectStatusText.text = "Retired";
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        ProjectQualityText.text = project.QualityLevels.Info(" | ", true);
-        ProjectPayoutText.text = project.CurrentPayout.ToString("C0");
+        ProjectStatusText.text = project.ProjectStatus;
     }
 }

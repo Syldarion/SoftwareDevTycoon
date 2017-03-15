@@ -12,8 +12,8 @@ public class SkillAllocationControl : MonoBehaviour
     
     public int CurrentSkillLevel;
 
-    private const int SKILL_MIN_LEVEL = 1;
-    private const int SKILL_MAX_LEVEL = 99;
+    private const int skill_min_level = 1;
+    private const int skill_max_level = 99;
 
     void Awake()
     {
@@ -34,7 +34,7 @@ public class SkillAllocationControl : MonoBehaviour
     {
         int new_value = int.Parse(value);
         int difference = new_value - CurrentSkillLevel;
-        if (new_value < SKILL_MIN_LEVEL || new_value > SKILL_MAX_LEVEL)
+        if (new_value < skill_min_level || new_value > skill_max_level)
         {
             UpdateSkillInfo();
             return;

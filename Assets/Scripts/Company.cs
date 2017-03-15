@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.UI;
+using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
 [Serializable]
@@ -17,12 +17,25 @@ public class Company
 
     //Properties
     public string Name { get { return companyName; } }
-    public int Reputation { get { return reputation; } }
-    public int Funds { get { return funds; } }
+    public int Funds
+    {
+        get { return funds; }
+        set
+        {
+            funds = Mathf.Clamp(value, -int.MaxValue, int.MaxValue);
+            StatusBarManager.Instance.UpdateFunds(funds);
+        }
+    }
+    public int Reputation
+    {
+        get { return reputation; }
+        set { reputation = Mathf.Clamp(value, 0, 100); }
+    }
     public int TeamSize { get { return employees.Count; } }
-    
+
     //Public Fields
-    public Project CompanyProject;
+    public List<Project> CompanyProjects;
+    public Project ActiveCompanyProject;
     public Contract ActiveContract;
     public List<Office> CompanyOffices;
 
@@ -30,9 +43,9 @@ public class Company
     [SerializeField]
     private string companyName;
     [SerializeField]
-    private int reputation;
-    [SerializeField]
     private int funds;
+    [SerializeField]
+    private int reputation;
     [SerializeField]
     private List<Employee> employees;
 
@@ -40,6 +53,7 @@ public class Company
     {
         companyName = name;
 
+        CompanyProjects = new List<Project>();
         CompanyOffices = new List<Office>();
         employees = new List<Employee>();
 
@@ -60,18 +74,32 @@ public class Company
 
         int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * init_office.Space);
 
-        Character.MyCharacter.AdjustMoney(-new_company_cost);
-        new_company.AdjustFunds(Character.MyCharacter.Money);
-        Character.MyCharacter.AdjustMoney(-Character.MyCharacter.Money);
+        if(Character.MyCharacter.ActiveContract != null)
+        {
+            Contract temp = Character.MyCharacter.ActiveContract;
+            Contract.SetPlayerActiveContract(null);
+            Contract.SetCompanyActiveContract(temp);
+        }
 
+        if(Job.MyJob != null)
+            Job.MyJob.FirePlayer();
+        
+        int temp_funds = Character.MyCharacter.Funds - new_company_cost;
+        Character.MyCharacter.Funds = 0;
+        new_company.Funds = temp_funds;
+        
         return new_company;
     }
 
     public void SetupEvents()
     {
         TimeManager.PerMonthEvent.RemoveListener(PayMonthlyCosts);
+        TimeManager.PerDayEvent.RemoveListener(WorkOnActiveContract);
+        TimeManager.PerDayEvent.RemoveListener(WorkOnProject);
 
         TimeManager.PerMonthEvent.AddListener(PayMonthlyCosts);
+        TimeManager.PerDayEvent.AddListener(WorkOnActiveContract);
+        TimeManager.PerDayEvent.AddListener(WorkOnProject);
     }
 
     public void PayMonthlyCosts()
@@ -80,47 +108,33 @@ public class Company
         PayForOffices();
     }
 
-    public void AdjustFunds(int adjustment)
-    {
-        funds += adjustment;
-
-        //check for bankruptcy and shit
-    }
-
     public void DeclareBankruptcy()
     {
         //rekt
     }
 
-    public void AdjustReputation(int adjustment)
-    {
-        reputation = Mathf.Clamp(reputation + adjustment, 0, 100);
-    }
-
     public void AddOffice(Office newOffice)
     {
         CompanyOffices.Add(newOffice);
-        StatusBarManager.Instance.UpdateCompanyInfo();
     }
 
     public void RemoveOffice(Office office)
     {
         if(CompanyOffices.Contains(office))
             CompanyOffices.Remove(office);
-        StatusBarManager.Instance.UpdateCompanyInfo();
     }
 
     public void PayEmployees()
     {
         int total_payroll = employees.Aggregate(0, (current, emp) => current + emp.Pay);
-        AdjustFunds(-total_payroll);
-        AdjustReputation(1);
+        Funds -= total_payroll;
+        Reputation++;
     }
 
     public void PayForOffices()
     {
         int total_cost = CompanyOffices.Aggregate(0, (current, office) => current + office.TotalUpkeepCost);
-        AdjustFunds(-total_cost);
+        Funds -= total_cost;
     }
 
     public void HireEmployee(Employee employee)
@@ -128,14 +142,12 @@ public class Company
         if(employees.Contains(employee))
             return;
         
-        AdjustFunds(-employee.HireCost);
+        Funds -= employee.HireCost;
         employee.HireDateBinary = TimeManager.CurrentDate.ToBinary();
 
         employees.Add(employee);
 
         MyCompany.CompanyOffices.First().Employees.Add(employee);
-
-        StatusBarManager.Instance.UpdateCompanyInfo();
     }
 
     public void FireEmployee(Employee employee)
@@ -146,21 +158,29 @@ public class Company
         TimeSpan job_length = TimeManager.CurrentDate - DateTime.FromBinary(employee.HireDateBinary);
         int total_sev_pay = BASE_SEVERANCE_PAY + 
             Mathf.CeilToInt((job_length.Days / 356.0f) * (employee.Salary / 12.0f));
+        
+        Funds -= total_sev_pay;
+        Reputation--;
 
-        AdjustFunds(-total_sev_pay);
-        AdjustReputation(-1);
-
-        employees.Remove(employee);
-
-        StatusBarManager.Instance.UpdateCompanyInfo();
+        RemoveEmployee(employee);
     }
 
-    public void TrainEmployee(Employee employee)
+    public void RemoveEmployee(Employee employee)
+    {
+        employees.Remove(employee);
+        foreach (Office office in CompanyOffices)
+            if (office.Employees.Contains(employee))
+            {
+                office.Employees.Remove(employee);
+                break;
+            }
+    }
+
+    public void TrainEmployee(Employee employee, int trainCost)
     {
         int skill_sum = Mathf.Clamp(employee.Skills.Sum(), 1, int.MaxValue);
-        int training_cost = TRAINING_COST_MULTIPLIER * skill_sum;
 
-        AdjustFunds(-training_cost);
+        Funds -= trainCost;
 
         for (int i = 0; i < SkillInfo.COUNT; i++)
         {
@@ -172,35 +192,66 @@ public class Company
 
     public void WorkOnActiveContract()
     {
+        if (ActiveContract == null) return;
+
         var work_sums = new SkillList();
-        for (int i = 0; i < SkillInfo.COUNT; i++)
+        foreach (Office office in CompanyOffices)
         {
-            foreach (Office office in CompanyOffices)
-            {
-                float office_work_sum = office.Employees.Sum(x => x.Skills[i].Level * (x.Morale / 70.0f));
-                office_work_sum = office_work_sum * (1.0f + office.QualityBonuses[i]);
-                work_sums[(Skill)i] += Mathf.CeilToInt(office_work_sum);
-            }
+            var office_work_sum = new SkillList();
+            foreach (Employee emp in office.Employees)
+                office_work_sum += emp.Skills;
+            office_work_sum = office.ApplyQualityBonus(office_work_sum);
+            work_sums += office_work_sum;
         }
 
-        if(ActiveContract.ApplyWork(work_sums))
+        if (ActiveContract.ApplyWork(work_sums))
             Contract.SetCompanyActiveContract(null);
     }
 
     public void WorkOnProject()
     {
+        if (ActiveCompanyProject == null) return;
+
         var work_sums = new SkillList();
-        for (int i = 0; i < SkillInfo.COUNT; i++)
+        foreach (Office office in CompanyOffices)
         {
-            foreach (Office office in CompanyOffices)
-            {
-                float office_work_sum = office.Employees.Sum(x => x.Skills[i].Level * (x.Morale / 70.0f));
-                office_work_sum = office_work_sum * (1.0f + office.QualityBonuses[i]);
-                work_sums[(Skill)i] += Mathf.CeilToInt(office_work_sum);
-            }
+            var office_work_sum = new SkillList();
+            foreach (Employee emp in office.Employees)
+                office_work_sum += emp.Skills;
+            office_work_sum = office.ApplyQualityBonus(office_work_sum);
+            work_sums += office_work_sum;
         }
 
-        CompanyProject.ApplyWork(work_sums);
+        ActiveCompanyProject.ApplyWork(work_sums);
+    }
+
+    public void SetActiveProject(Project project)
+    {
+        if (project == null && 
+            (project.CurrentStatus == Project.Status.InProgress || 
+            project.CurrentStatus == Project.Status.Halted)) return;
+
+        if (ActiveCompanyProject != null)
+            ActiveCompanyProject.CurrentStatus = Project.Status.Halted;
+
+        ActiveCompanyProject = project;
+        ActiveCompanyProject.CurrentStatus = Project.Status.InProgress;
+    }
+
+    public void CheckEmployeeMorale()
+    {
+        foreach(Office office in CompanyOffices)
+        {
+            foreach(Employee emp in office.Employees)
+            {
+                if (Random.Range(0, 30) > emp.Morale)
+                {
+                    RemoveEmployee(emp);
+                    InformationPanelManager.Instance.DisplayMessage(
+                        string.Format("{0} quit!", emp.Name), 1.0f);
+                }
+            }
+        }
     }
 
     //Getters / Setters

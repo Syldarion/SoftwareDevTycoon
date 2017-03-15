@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class SDTUIController : Singleton<SDTUIController>
 {
+    public Canvas MainMenuCanvas;
+    public Canvas InGameCanvas;
+
     public List<CanvasGroup> ActiveCanvases;
 
     private bool locked;

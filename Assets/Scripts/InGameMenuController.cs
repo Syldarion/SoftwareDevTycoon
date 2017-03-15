@@ -4,9 +4,10 @@ using System.Collections;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 
-public class InGameMenuManager : MonoBehaviour
+public class InGameMenuController : MonoBehaviour
 {
     public RectTransform MenuPanel;
+    public Image ToggleMenuImage;
 
     private bool menuOpen;
 
@@ -22,7 +23,11 @@ public class InGameMenuManager : MonoBehaviour
 
     void Update()
     {
+    }
 
+    public void ToggleSubMenu(RectTransform subMenu)
+    {
+        subMenu.gameObject.SetActive(!subMenu.gameObject.activeSelf);
     }
 
     public void ToggleMenu()
@@ -32,31 +37,39 @@ public class InGameMenuManager : MonoBehaviour
 
     private IEnumerator OpenMenu()
     {
+        Vector2 pos;
         while(MenuPanel.anchoredPosition.x < 0)
         {
-            Vector2 pos = MenuPanel.anchoredPosition;
-            pos.x += 500.0f * Time.deltaTime;
+            pos = MenuPanel.anchoredPosition;
+            pos.x += 1000.0f * Time.deltaTime;
             MenuPanel.anchoredPosition = pos;
             yield return null;
         }
-        MenuPanel.anchoredPosition.Set(0.0f, MenuPanel.anchoredPosition.y);
+        pos = MenuPanel.anchoredPosition;
+        pos.x = 0.0f;
+        MenuPanel.anchoredPosition = pos;
+        ToggleMenuImage.rectTransform.Rotate(0.0f, 0.0f, 180.0f);
         menuOpen = true;
     }
 
     private IEnumerator CloseMenu()
     {
+        Vector2 pos;
         while (MenuPanel.anchoredPosition.x > -500)
         {
-            Vector2 pos = MenuPanel.anchoredPosition;
-            pos.x -= 500.0f * Time.deltaTime;
+            pos = MenuPanel.anchoredPosition;
+            pos.x -= 1000.0f * Time.deltaTime;
             MenuPanel.anchoredPosition = pos;
             yield return null;
         }
-        MenuPanel.anchoredPosition.Set(-500.0f, MenuPanel.anchoredPosition.y);
+        pos = MenuPanel.anchoredPosition;
+        pos.x = -500.0f;
+        MenuPanel.anchoredPosition = pos;
+        ToggleMenuImage.rectTransform.Rotate(0.0f, 0.0f, 180.0f);
         menuOpen = false;
     }
 
-    private void SaveGame()
+    public void SaveGame()
     {
         SaveManager.Instance.SaveGame();
     }

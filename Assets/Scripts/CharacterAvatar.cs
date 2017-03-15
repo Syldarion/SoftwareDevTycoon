@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class CharacterAvatar : MonoBehaviour
 {
+    public bool Editable;
     public Color[] AvatarColors;
 
     public Image AvatarHead;
@@ -36,6 +37,16 @@ public class CharacterAvatar : MonoBehaviour
         
     }
 
+    public void LoadAvatar(Person person)
+    {
+        AvatarHead.color = person.GetHeadColor();
+        AvatarMaleBody.color = person.GetBodyColor();
+        AvatarFemaleBody.color = person.GetBodyColor();
+        AvatarLegs.color = person.GetLegsColor();
+        AvatarMaleBody.gameObject.SetActive(person.IsMale);
+        AvatarFemaleBody.gameObject.SetActive(!person.IsMale);
+    }
+
     public void NextHeadColor()
     {
         headColorIndex++;
@@ -65,17 +76,23 @@ public class CharacterAvatar : MonoBehaviour
 
     public void ChangeHeadColor(Color color)
     {
+        if (!Editable) return;
+
         AvatarHead.color = color;
     }
 
     public void ChangeBodyColor(Color color)
     {
+        if (!Editable) return;
+
         AvatarMaleBody.color = color;
         AvatarFemaleBody.color = color;
     }
 
     public void ChangeLegsColor(Color color)
     {
+        if (!Editable) return;
+
         AvatarLegs.color = color;
     }
 

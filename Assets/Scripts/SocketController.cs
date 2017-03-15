@@ -105,7 +105,7 @@ public class SocketController
     {
         try
         {
-            Socket client_socket = (Socket)result.AsyncState;
+            var client_socket = (Socket)result.AsyncState;
 
             int bytes_sent = client_socket.EndSend(result);
             Debug.Log(string.Format(
@@ -124,7 +124,7 @@ public class SocketController
     {
         try
         {
-            StateObject state = new StateObject { WorkSocket = client };
+            var state = new StateObject { WorkSocket = client };
 
             client.BeginReceive(state.Buffer, 0, StateObject.BUFFER_SIZE, 0, ReceiveCallback, state);
         }
@@ -138,7 +138,7 @@ public class SocketController
     {
         try
         {
-            StateObject state = (StateObject)result.AsyncState;
+            var state = (StateObject)result.AsyncState;
             Socket client = state.WorkSocket;
 
             int bytes_read = client.EndReceive(result);

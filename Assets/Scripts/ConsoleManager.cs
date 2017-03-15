@@ -15,17 +15,17 @@ public class ConsoleCommand
         {
             int value = Convert.ToInt32(x[0]);
             if(Company.MyCompany == null)
-                Character.MyCharacter.AdjustMoney(value - Character.MyCharacter.Money);
+                Character.MyCharacter.Funds = value;
             else
-                Company.MyCompany.AdjustFunds(value - Company.MyCompany.Funds);
+                Company.MyCompany.Funds = value;
         }),
         new ConsoleCommand("setrep", "usage: setrep {value}", "Successfully set reputation!", 1, x =>
         {
             int value = Convert.ToInt32(x[0]);
             if(Company.MyCompany == null)
-                Character.MyCharacter.AdjustReputation(value - Character.MyCharacter.Reputation);
-            else 
-                Company.MyCompany.AdjustReputation(value - Company.MyCompany.Reputation);
+                Character.MyCharacter.Reputation = value;
+            else
+                Company.MyCompany.Reputation = value;
         }),
     };
 
@@ -84,7 +84,7 @@ public class ConsoleManager : MonoBehaviour
     {
         ConsoleInput.text = string.Empty;
         string[] split_input = input.Split(' ');
-        ConsoleCommand command = ConsoleCommand.GetCommand(split_input[0]);
+        var command = ConsoleCommand.GetCommand(split_input[0]);
         if(command == null)
         {
             OutputMessage(string.Format("Could not find {0} in the command library!", split_input[0]));

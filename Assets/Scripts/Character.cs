@@ -1,31 +1,20 @@
 ﻿using System;
-using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
+using UnityEngine;
+using UnityEngine.Events;
 using Random = UnityEngine.Random;
-
-public enum CharacterGender
-{
-    Male = 0,
-    Female = 1
-}
 
 [Serializable]
 public class Person
 {
-    public enum Gender
-    {
-        Male,
-        Female
-    }
-
     public string Name;
     public int Age;
-    public Gender PersonGender;
     public Location CurrentLocation;
+    public bool IsMale;
 
     [SerializeField]
     private float[] headColor;
@@ -105,12 +94,28 @@ public class Character : Person
 {
     public static Character MyCharacter;
 
+    public int Funds
+    {
+        get { return funds; }
+        set
+        {
+            funds = Mathf.Clamp(value, -int.MaxValue, int.MaxValue);
+            StatusBarManager.Instance.UpdateFunds(funds);
+        }
+    }
+    public int Reputation
+    {
+        get { return reputation; }
+        set { reputation = Mathf.Clamp(value, 0, 100); }
+    }
+
     public Contract ActiveContract;
     public string Birthday;
 
-    public int Money { get; private set; }
-
-    public int Reputation { get; private set; }
+    [SerializeField]
+    private int funds;
+    [SerializeField]
+    private int reputation;
 
     public Character()
     {
@@ -120,22 +125,16 @@ public class Character : Person
     public void SetupEvents()
     {
         TimeManager.PerDayEvent.RemoveListener(CheckBirthday);
+        TimeManager.PerDayEvent.RemoveListener(WorkOnContract);
 
         TimeManager.PerDayEvent.AddListener(CheckBirthday);
-    }
-
-    public void AdjustMoney(int adjustment)
-    {
-        Money = Mathf.Clamp(Money + adjustment, -int.MaxValue, int.MaxValue);
-    }
-
-    public void AdjustReputation(int adjustment)
-    {
-        Reputation = Mathf.Clamp(Reputation + adjustment, 0, 100);
+        TimeManager.PerDayEvent.AddListener(WorkOnContract);
     }
 
     public void WorkOnContract()
     {
+        if (ActiveContract == null) return;
+
         var work = new SkillList();
         for(int i = 0; i < work.Length; i++)
             work[i] = Skills[i] + Random.Range(-1, 2);
@@ -154,6 +153,7 @@ public class Character : Person
         if (day == TimeManager.Day && month == TimeManager.Month)
         {
             Age++;
+            InformationPanelManager.Instance.DisplayMessage("Happy Birthday!", 5.0f);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -77,9 +78,25 @@ public class SkillList
     public string Info(string separator, bool abbreviated)
     {
         return string.Join(separator,
-            allSkills.Select(x => string.Format("{0}: {1}", 
+            allSkills.Select(x => string.Format("{0} {1}", 
             abbreviated ? SkillInfo.SKILL_ABBR[(int)x.Skill] : SkillInfo.SKILL_NAME[(int)x.Skill], 
             x.Level)).ToArray());
+    }
+
+    public string InfoLines(int lineLength, bool abbreviated)
+    {
+        return string.Join("\n",
+            Skills.Select(x =>
+            {
+                var skill_builder = new StringBuilder();
+                skill_builder.Append(abbreviated
+                    ? SkillInfo.SKILL_ABBR[(int)x.Skill]
+                    : SkillInfo.SKILL_NAME[(int)x.Skill]);
+                int spaces = lineLength - 2 - SkillInfo.SKILL_NAME[(int)x.Skill].Length;
+                skill_builder.Append('.', spaces);
+                skill_builder.Append(x.Level);
+                return skill_builder.ToString();
+            }).ToArray());
     }
 
     [NotNull]

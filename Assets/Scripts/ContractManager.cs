@@ -29,9 +29,6 @@ public class ContractManager : Singleton<ContractManager>
 
     void Update()
     {
-        if (SDTControls.GetControlKeyDown(SDTControls.OPEN_CONTRACT_PANEL))
-            OpenContractForm();
-
         if (Input.GetKeyDown(KeyCode.Escape))
             CloseContractForm();
     }

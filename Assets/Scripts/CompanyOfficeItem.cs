@@ -8,7 +8,6 @@ public class CompanyOfficeItem : MonoBehaviour, IPointerDownHandler
 {
     public Office ItemOffice;
     public Text LocationText;
-    public Text BuildingCountText;
     public Text UpkeepCostText;
 
     void Start()
@@ -29,8 +28,9 @@ public class CompanyOfficeItem : MonoBehaviour, IPointerDownHandler
     public void PopulateData(Office office)
     {
         ItemOffice = office;
-        LocationText.text = string.Format("Location\n{0}", office.OfficeLocation.Name);
-        //BuildingCountText.text = office.Buildings.Count.ToString();
-        UpkeepCostText.text = office.TotalUpkeepCost.ToString("C");
+        LocationText.text = office.OfficeLocation.Name;
+        UpkeepCostText.text = Company.MyCompany.CompanyOffices.Contains(office) 
+            ? "Upkeep: " + office.TotalUpkeepCost.ToString("C0")
+            : "Cost: " + office.PurchasePrice.ToString("C0");
     }
 }

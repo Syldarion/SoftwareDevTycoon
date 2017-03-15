@@ -87,13 +87,11 @@ public class Contract
         if (contract != null)
         {
             Character.MyCharacter.ActiveContract = contract;
-            TimeManager.PerDayEvent.AddListener(Character.MyCharacter.WorkOnContract);
             InformationPanelManager.Instance.ShowActiveContract();
             InformationPanelManager.Instance.UpdateActiveContract();
         }
         else
         {
-            TimeManager.PerDayEvent.RemoveListener(Character.MyCharacter.WorkOnContract);
             Character.MyCharacter.ActiveContract = null;
             InformationPanelManager.Instance.HideActiveContract();
         }
@@ -104,13 +102,11 @@ public class Contract
         if(contract != null)
         {
             Company.MyCompany.ActiveContract = contract;
-            TimeManager.PerDayEvent.AddListener(Company.MyCompany.WorkOnActiveContract);
             InformationPanelManager.Instance.ShowActiveContract();
             InformationPanelManager.Instance.UpdateActiveContract();
         }
         else
         {
-            TimeManager.PerDayEvent.RemoveListener(Company.MyCompany.WorkOnActiveContract);
             InformationPanelManager.Instance.HideActiveContract();
         }
     }
@@ -119,13 +115,13 @@ public class Contract
     {
         if (Company.MyCompany == null)
         {
-            Character.MyCharacter.AdjustMoney(Payment);
-            Character.MyCharacter.AdjustReputation(ReputationReward);
+            Character.MyCharacter.Funds += Payment;
+            Character.MyCharacter.Reputation += ReputationReward;
         }
         else
         {
-            Company.MyCompany.AdjustFunds(Payment);
-            Company.MyCompany.AdjustReputation(ReputationReward);
+            Company.MyCompany.Funds += Payment;
+            Company.MyCompany.Reputation += ReputationReward;
         }
 
         InformationPanelManager.Instance.DisplayMessage("Completed contract: " + Name, 1.0f);
@@ -134,9 +130,9 @@ public class Contract
     public void CancelContract()
     {
         if(Company.MyCompany == null)
-            Character.MyCharacter.AdjustReputation(-Mathf.FloorToInt((float)ReputationReward / 2));
+            Character.MyCharacter.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         else
-            Company.MyCompany.AdjustReputation(-Mathf.FloorToInt((float)ReputationReward / 2));
+            Company.MyCompany.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         InformationPanelManager.Instance.DisplayMessage("Failed contract: " + Name, 1.0f);
         SetPlayerActiveContract(null);
     }

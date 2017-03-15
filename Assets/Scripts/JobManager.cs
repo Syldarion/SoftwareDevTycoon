@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System;
 
 public class JobManager : Singleton<JobManager>
 {
@@ -26,11 +27,7 @@ public class JobManager : Singleton<JobManager>
     public Text JobTitleText;
     public Text JobCompanyText;
     public Text JobPayText;
-    public Text ActiveTaskNameText;
-    public ProgressBar ActiveTaskProgressBar;
-    public Text ActiveTaskDaysText;
-    public Text ProjectNameText;
-    public ProgressBar ProjectProgressBar;
+    public Text JobHireDateText;
 
     [Header("Variables")]
     public int[] SkillRequirementFilters;
@@ -69,20 +66,10 @@ public class JobManager : Singleton<JobManager>
 
     void Update()
     {
-        if (SDTControls.GetControlKeyDown(SDTControls.OPEN_JOB_PANEL))
-        {
-            if (Job.MyJob == null)
-                OpenJobSearch();
-            else
-                OpenJobInfo();
-        }
-
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if(Job.MyJob == null)
-                CloseJobSearch();
-            else
-                CloseJobInfo();
+            CloseJobSearch();
+            CloseJobInfo();
         }
     }
 
@@ -97,11 +84,11 @@ public class JobManager : Singleton<JobManager>
         
         SDTUIController.Instance.OpenCanvas(JobSearchPanel);
         
-        PopulateApplicationList();
-        PopulateSearchList();
+        RefreshApplicationList();
+        RefreshSearchList();
     }
 
-    public void PopulateApplicationList()
+    public void RefreshApplicationList()
     {
         foreach (Transform child in ApplicationListTransform)
             Destroy(child.gameObject);
@@ -143,7 +130,7 @@ public class JobManager : Singleton<JobManager>
         }
     }
 
-    public void PopulateSearchList()
+    public void RefreshSearchList()
     {
         SearchListItems = new List<JobListItem>();
         foreach (Transform child in SearchListTransform)
@@ -175,12 +162,13 @@ public class JobManager : Singleton<JobManager>
     public void OpenJobInfo()
     {
         if (Job.MyJob == null) return;
-        
-        SDTUIController.Instance.OpenCanvas(JobInfoPanel);
 
         JobTitleText.text = Job.MyJob.CurrentTitle.Name;
         JobCompanyText.text = Job.MyJob.CompanyName;
-        JobPayText.text = Job.MyJob.Salary.ToString();
+        JobPayText.text = string.Format("Salary: {0}", Job.MyJob.Salary.ToString("C0"));
+        JobHireDateText.text = string.Format("Hire Date: {0}", DateTime.FromBinary(Job.MyJob.HireDateBinary).ToString("dd/MM/yyyy"));
+
+        SDTUIController.Instance.OpenCanvas(JobInfoPanel);
     }
 
     public void CloseJobInfo()
@@ -234,13 +222,13 @@ public class JobManager : Singleton<JobManager>
     {
         var new_application = new JobApplication(job);
         ActiveApplications.Add(new_application);
-        PopulateApplicationList();
+        RefreshApplicationList();
     }
 
     public void RemoveJobApplication(JobApplication application)
     {
         ActiveApplications.Remove(application);
-        PopulateApplicationList();
+        RefreshApplicationList();
     }
 
     public void CheckActiveApplications()

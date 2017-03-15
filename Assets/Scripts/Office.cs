@@ -10,8 +10,8 @@ using Random = UnityEngine.Random;
 [Serializable]
 public class Office
 {
-    public const int MIN_OFFICE_SPACE = 50;
-    public const int MAX_OFFICE_SPACE = 200;
+    public const int MIN_OFFICE_SPACE = 100;
+    public const int MAX_OFFICE_SPACE = 2000;
     public const int COST_PER_SPACE = 100;
     public const int BASE_UPKEEP_COST = 2000;
 
@@ -40,6 +40,7 @@ public class Office
     public float SalesModifier;
 
     //Private Fields
+    [SerializeField]
     private int space;
     
     public Office(int officeSpace)
@@ -94,6 +95,13 @@ public class Office
         int old_space = space;
         space = Mathf.Clamp(space + extraSpace, 0, MAX_OFFICE_SPACE);
         return (space - old_space) * COST_PER_SPACE;
+    }
+
+    public SkillList ApplyQualityBonus(SkillList initList)
+    {
+        for(int i = 0; i < QualityBonuses.Length; i++)
+            initList[i].Level = Mathf.CeilToInt(initList[i].Level * (1.0f + QualityBonuses[i]));
+        return initList;
     }
 
     public static Office GenerateOffice()

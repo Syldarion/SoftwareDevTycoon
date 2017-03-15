@@ -28,11 +28,12 @@ public class MessageItem
 
 public class MainMenuController : Singleton<MainMenuController>
 {
-    private const float TIME_PER_CHARACTER = 0.05f;
-    private const float CURSOR_FLASH_RATE = 0.2f;
-    private const float WAIT_FOR_EXECUTE = 0.5f;
+    private const float time_per_character = 0.05f;
+    private const float cursor_flash_rate = 0.2f;
+    private const float wait_for_execute = 0.5f;
 
     public Button ConsoleMessagePrefab;
+    public RectTransform BlockingPanel;
 
     [Header("New Game Panels")]
     public CanvasGroup InformationPanel;
@@ -59,7 +60,6 @@ public class MainMenuController : Singleton<MainMenuController>
     [Header("Settings Panels")]
     public CanvasGroup AudioSettingsPanel;
     public CanvasGroup VideoSettingsPanel;
-    public CanvasGroup ControlsSettingsPanel;
     public CanvasGroup GameplaySettingsPanel;
 
     [Header("Console UI")]
@@ -73,6 +73,7 @@ public class MainMenuController : Singleton<MainMenuController>
     private CanvasGroup activePanel;
     private DateTime latestBirthday;
     private int currentLocationIndex;
+    private bool skipOutput;
 
     void Awake()
     {
@@ -83,6 +84,7 @@ public class MainMenuController : Singleton<MainMenuController>
         activePanel = null;
         latestBirthday = DateTime.Today - new TimeSpan(365 * 18, 0, 0, 0);
         currentLocationIndex = 0;
+        skipOutput = false;
     }
 
     void Start()
@@ -94,11 +96,15 @@ public class MainMenuController : Singleton<MainMenuController>
         CharacterLocationText.text = Location.Locations[currentLocationIndex].Name;
 
         AddMessageToQueue(new MessageItem("software_dev_tycoon", "exec", OpenBaseMenu));
+
+        TimeManager.Pause();
+        TimeManager.Lock();
     }
 
     void Update()
     {
-        
+        if (Input.GetMouseButtonDown(0))
+            skipOutput = true;
     }
 
     public void ClearMenu()
@@ -208,28 +214,31 @@ public class MainMenuController : Singleton<MainMenuController>
                   (DateTime.Today.Month == birthday.Month && DateTime.Today.Day > birthday.Day)
                       ? DateTime.Today.Year - birthday.Year
                       : DateTime.Today.Year - birthday.Year - 1,
-            PersonGender = NewCharacterAvatar.AvatarMaleBody.gameObject.activeSelf
-                               ? Person.Gender.Male
-                               : Person.Gender.Female,
             Birthday = birthday.ToString("dd-MM-yyyy"),
-            CurrentLocation = Location.Locations[currentLocationIndex]
+            CurrentLocation = Location.Locations[currentLocationIndex],
+            IsMale = NewCharacterAvatar.AvatarMaleBody.gameObject.activeSelf
         };
 
         new_character.SetHeadColor(NewCharacterAvatar.AvatarHead.color);
         new_character.SetBodyColor(NewCharacterAvatar.AvatarMaleBody.color);
         new_character.SetLegsColor(NewCharacterAvatar.AvatarLegs.color);
-
-        new_character.AdjustMoney(5000);
-        new_character.AdjustReputation(50);
-
+        
         new_character.Skills[Skill.Programming].Level = ProgrammingSkillAllocator.CurrentSkillLevel;
         new_character.Skills[Skill.UserInterfaces].Level = UserInterfacesSkillAllocator.CurrentSkillLevel;
         new_character.Skills[Skill.Databases].Level = DatabasesSkillAllocator.CurrentSkillLevel;
         new_character.Skills[Skill.Networking].Level = NetworkingSkillAllocator.CurrentSkillLevel;
         new_character.Skills[Skill.WebDevelopment].Level = WebDevelopmentSkillAllocator.CurrentSkillLevel;
 
-        SceneManager.LoadScene("in_game");
+        new_character.Funds = 5000;
+        new_character.Reputation = 50;
+
         new_character.SetupEvents();
+
+        SDTUIController.Instance.MainMenuCanvas.gameObject.SetActive(false);
+        SDTUIController.Instance.InGameCanvas.gameObject.SetActive(true);
+
+        TimeManager.Unlock();
+        TimeManager.Unpause();
     }
 
     public void OpenLoadGameMenu()
@@ -248,7 +257,6 @@ public class MainMenuController : Singleton<MainMenuController>
         ClearMenu();
         AddMessageToQueue(new MessageItem("audio", "modify", OpenAudioSettingsMenu));
         AddMessageToQueue(new MessageItem("video", "modify", OpenVideoSettingsMenu));
-        AddMessageToQueue(new MessageItem("controls", "modify", OpenControlsSettingsMenu));
         AddMessageToQueue(new MessageItem("gameplay", "modify", OpenGameplaySettingsMenu));
         AddMessageToQueue(new MessageItem("save", "exec", SaveCurrentSettings));
         AddMessageToQueue(new MessageItem("main_menu", "exec", () =>
@@ -266,11 +274,6 @@ public class MainMenuController : Singleton<MainMenuController>
     public void OpenVideoSettingsMenu()
     {
         StartCoroutine(SwitchConsoleScreenPanel(VideoSettingsPanel));
-    }
-
-    public void OpenControlsSettingsMenu()
-    {
-        StartCoroutine(SwitchConsoleScreenPanel(ControlsSettingsPanel));
     }
 
     public void OpenGameplaySettingsMenu()
@@ -360,7 +363,7 @@ public class MainMenuController : Singleton<MainMenuController>
             while(cursorFlashing)
             {
                 CursorImage.gameObject.SetActive(!CursorImage.gameObject.activeSelf);
-                yield return new WaitForSeconds(CURSOR_FLASH_RATE);
+                yield return new WaitForSeconds(cursor_flash_rate);
             }
             yield return null;
         }
@@ -370,26 +373,38 @@ public class MainMenuController : Singleton<MainMenuController>
     {
         while(Application.isPlaying)
         {
-            if(messageQueue.Count > 0)
-                yield return StartCoroutine(RunQueueMessage(messageQueue.Dequeue()));
+            if (messageQueue.Count > 0)
+            {
+                if (skipOutput)
+                    AddMessageToList(messageQueue.Dequeue());
+                else
+                    yield return StartCoroutine(RunQueueMessage(messageQueue.Dequeue()));
+            }
+            else
+            {
+                BlockingPanel.gameObject.SetActive(false);
+                skipOutput = false;
+            }
             yield return null;
         }
     }
 
     IEnumerator RunQueueMessage(MessageItem message)
     {
+        BlockingPanel.gameObject.SetActive(true);
+
         cursorFlashing = false;
         CursorImage.gameObject.SetActive(true);
         ConsoleText.text = string.Empty;
 
         int current_length = 0;
         int max_length = message.Message.Length;
-        while(current_length <= max_length)
+        while (current_length <= max_length)
         {
-            GetComponent<AudioSource>().Play();
+            //GetComponent<AudioSource>().Play();
             ConsoleText.text = message.Message.Substring(0, current_length);
             current_length++;
-            yield return new WaitForSeconds(TIME_PER_CHARACTER);
+            yield return new WaitForSeconds(time_per_character);
         }
         AddMessageToList(message);
 
@@ -400,6 +415,8 @@ public class MainMenuController : Singleton<MainMenuController>
 
     public IEnumerator RunExecMessage(MessageItem message)
     {
+        BlockingPanel.gameObject.SetActive(true);
+
         cursorFlashing = false;
         CursorImage.gameObject.SetActive(true);
         ConsoleText.text = string.Empty;
@@ -408,17 +425,19 @@ public class MainMenuController : Singleton<MainMenuController>
         int max_length = message.ExecMessage.Length;
         while(current_length <= max_length)
         {
-            GetComponent<AudioSource>().Play();
+            //GetComponent<AudioSource>().Play();
             ConsoleText.text = message.ExecMessage.Substring(0, current_length);
             current_length++;
-            yield return new WaitForSeconds(TIME_PER_CHARACTER);
+            yield return new WaitForSeconds(time_per_character);
         }
 
-        yield return new WaitForSeconds(WAIT_FOR_EXECUTE);
+        yield return new WaitForSeconds(wait_for_execute);
         message.Action.Invoke();
 
         ConsoleText.text = string.Empty;
         CursorImage.gameObject.SetActive(false);
         cursorFlashing = true;
+
+        BlockingPanel.gameObject.SetActive(false);
     }
 }

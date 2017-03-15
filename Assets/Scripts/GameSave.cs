@@ -43,6 +43,7 @@ public class GameSave
     private void LoadCharacterInfo()
     {
         Character.MyCharacter = myCharacter;
+        Character.MyCharacter.SetupEvents();
     }
 
     private void LoadTimeInfo()
@@ -64,14 +65,20 @@ public class GameSave
         foreach (JobApplication app in activeApplications)
             JobManager.Instance.ActiveApplications.Add(app);
 
-        Job.MyJob = myJob;
-        Job.MyJob.SetupEvents();
+        if (myJob != null)
+        {
+            Job.MyJob = myJob;
+            Job.MyJob.SetupEvents();
+        }
     }
 
     private void LoadCompanyInfo()
     {
-        Company.MyCompany = myCompany;
-        Company.MyCompany.SetupEvents();
+        if (myCompany != null)
+        {
+            Company.MyCompany = myCompany;
+            Company.MyCompany.SetupEvents();
+        }
     }
 
     public void SaveGame()

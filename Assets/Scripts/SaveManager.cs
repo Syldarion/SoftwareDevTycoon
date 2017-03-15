@@ -61,7 +61,10 @@ public class SaveManager : Singleton<SaveManager>
 
     public IEnumerator LoadActiveSave()
     {
-        SceneManager.LoadScene("in_game");
+        SDTUIController.Instance.MainMenuCanvas.gameObject.SetActive(false);
+        SDTUIController.Instance.InGameCanvas.gameObject.SetActive(true);
+        TimeManager.Unlock();
+        TimeManager.Unpause();
         
         while (ContractManager.Instance == null)
             yield return null;
@@ -76,7 +79,7 @@ public class SaveManager : Singleton<SaveManager>
     public void SaveGame()
     {
         string save_name = string.Format("{0}-{1}",
-            Character.MyCharacter.Name,
+            Character.MyCharacter.Name.Replace(" ", string.Empty),
             TimeManager.CurrentDate.ToString("ddMMyyyy"));
 
         var new_save = new GameSave(save_name, DateTime.Now);
