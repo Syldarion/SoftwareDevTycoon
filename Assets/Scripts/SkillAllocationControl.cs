@@ -4,31 +4,25 @@ using System.Collections;
 
 public class SkillAllocationControl : MonoBehaviour
 {
-    public Skill.SkillType SkillType;
-    public Text SkillNameText;
-    public RectTransform SkillLevelBarTransform;
-    public Text SkillLevelText;
-    public Vector2 MaxBarSize;
+    public Skill SkillType;
+    public InputField SkillLevelInput;
     public Text RemainingPointsText;
 
     public static int RemainingPoints = 15;
     
     public int CurrentSkillLevel;
 
-    private const int SKILL_MIN_LEVEL = 1;
-    private const int SKILL_MAX_LEVEL = 10;
+    private const int skill_min_level = 1;
+    private const int skill_max_level = 99;
 
     void Awake()
     {
-        SkillNameText.text = Skill.GetSkillFromEnum(SkillType).Name;
-        CurrentSkillLevel = 0;
-
-        MaxBarSize = SkillLevelBarTransform.sizeDelta;
+        CurrentSkillLevel = 1;
     }
 
     void Start()
     {
-        ModifySkillLevel(0);
+        UpdateSkillInfo();
     }
 
     void Update()
@@ -36,15 +30,27 @@ public class SkillAllocationControl : MonoBehaviour
 
     }
 
-    public void ModifySkillLevel(int modifier)
+    public void ModifySkillLevel(string value)
     {
-        if (RemainingPoints <= 0) return;
+        int new_value = int.Parse(value);
+        int difference = new_value - CurrentSkillLevel;
+        if (new_value < skill_min_level || new_value > skill_max_level)
+        {
+            UpdateSkillInfo();
+            return;
+        }
 
-        RemainingPoints -= modifier;
+        if(difference > RemainingPoints)
+            difference = RemainingPoints;
+
+        RemainingPoints -= difference;
+        CurrentSkillLevel += difference;
+        UpdateSkillInfo();
+    }
+
+    public void UpdateSkillInfo()
+    {
+        SkillLevelInput.text = CurrentSkillLevel.ToString();
         RemainingPointsText.text = string.Format("Remaining: {0}", RemainingPoints);
-
-        CurrentSkillLevel = Mathf.Clamp(CurrentSkillLevel + modifier, SKILL_MIN_LEVEL, SKILL_MAX_LEVEL);
-        SkillLevelBarTransform.sizeDelta = new Vector2(CurrentSkillLevel * 0.1f * MaxBarSize.x, 0.0f);
-        SkillLevelText.text = CurrentSkillLevel.ToString();
     }
 }

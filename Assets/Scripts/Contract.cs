@@ -2,59 +2,116 @@
 using System.Collections;
 using System.Linq;
 
+public class ContractTemplate
+{
+    public static ContractTemplate[] Library = {
+        new ContractTemplate("Create audio library", new[] {Skill.Programming}),
+        new ContractTemplate("Create networking library", new[] {Skill.Programming, Skill.Networking}),
+        new ContractTemplate("Cleanup database schema", new[] {Skill.Databases}),
+        new ContractTemplate("Create web page", new[] {Skill.UserInterfaces, Skill.WebDevelopment}),
+        new ContractTemplate("Create website back-end", new[] {Skill.WebDevelopment}),
+    };
+
+    public string ContractName;
+    public Skill[] SkillsNeeded;
+
+    public ContractTemplate(string name, Skill[] skills)
+    {
+        ContractName = name;
+        SkillsNeeded = skills;
+    }
+
+    public static ContractTemplate GetRandomTemplate()
+    {
+        return Library[Random.Range(0, Library.Length)];
+    }
+}
+
 [System.Serializable]
 public class Contract
 {
-    public string Name { get; private set; }
-    //Programming, UserInterfaces, Databases, Networking, Web Development
-    public int[] SkillPointsNeeded;
-    public int TotalPointsNeeded;
+    public int TotalPointsRemaining { get { return SkillPointsRemaining.Sum(); } }
+    public float Progress { get { return (float)TotalPointsRemaining / InitialPointsNeeded; } }
+
+    public string Name;
+    public SkillList SkillPointsRemaining;
+    public int InitialPointsNeeded;
     public int DaysToComplete;
     public int DaysRemaining;
     public int Payment;
     public int ReputationReward;
+    public bool Negotiated;
+    public bool SuccessfulNegotiation;
 
-    public Contract(string name, int[] reqs, int days, int currency, int rep)
+    public Contract(string name, SkillList reqs, int days, int currency, int rep)
     {
         Name = name;
-        SkillPointsNeeded = new int[5];
-        for (int i = 0; i < 5 && i < reqs.Length; i++)
-            SkillPointsNeeded[i] = reqs[i];
-        TotalPointsNeeded = SkillPointsNeeded.Sum();
+        SkillPointsRemaining = reqs;
+        InitialPointsNeeded = SkillPointsRemaining.Sum();
         DaysToComplete = days;
         DaysRemaining = days;
         Payment = currency;
         ReputationReward = rep;
+        Negotiated = false;
+        SuccessfulNegotiation = false;
     }
 
     public void AcceptContract()
     {
-        ContractManager.Instance.SetActiveContract(this);
+        if(Company.MyCompany == null)
+            SetPlayerActiveContract(this);
+        else 
+            SetCompanyActiveContract(this);
+
     }
 
-    public void WorkContract()
+    public bool ApplyWork(SkillList work)
     {
-        for (int i = 0; i < SkillPointsNeeded.Length; i++)
-        {
-            if (SkillPointsNeeded[i] <= 0) continue;
-            int to_apply = Character.MyCharacter.Skills[i].Level + Random.Range(-1, 2);
-            SkillPointsNeeded[i] = Mathf.Clamp(
-                SkillPointsNeeded[i] - to_apply, 0, int.MaxValue);
-            break;
-        }
-
+        SkillPointsRemaining -= work;
         DaysRemaining--;
 
-        bool done = !SkillPointsNeeded.Any(x => x > 0);
-        if (done)
+        InformationPanelManager.Instance.UpdateActiveContract();
+        
+        if(SkillPointsRemaining.IsEmpty)
         {
             CompleteContract();
-            ContractManager.Instance.SetActiveContract(null);
+            return true;
         }
-        else if (DaysRemaining <= 0)
+        if(DaysRemaining <= 0)
         {
             CancelContract();
-            ContractManager.Instance.SetActiveContract(null);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void SetPlayerActiveContract(Contract contract)
+    {
+        if (contract != null)
+        {
+            Character.MyCharacter.ActiveContract = contract;
+            InformationPanelManager.Instance.ShowActiveContract();
+            InformationPanelManager.Instance.UpdateActiveContract();
+        }
+        else
+        {
+            Character.MyCharacter.ActiveContract = null;
+            InformationPanelManager.Instance.HideActiveContract();
+        }
+    }
+
+    public static void SetCompanyActiveContract(Contract contract)
+    {
+        if(contract != null)
+        {
+            Company.MyCompany.ActiveContract = contract;
+            InformationPanelManager.Instance.ShowActiveContract();
+            InformationPanelManager.Instance.UpdateActiveContract();
+        }
+        else
+        {
+            InformationPanelManager.Instance.HideActiveContract();
         }
     }
 
@@ -62,56 +119,67 @@ public class Contract
     {
         if (Company.MyCompany == null)
         {
-            Character.MyCharacter.AdjustMoney(Payment);
+            Character.MyCharacter.Funds += Payment;
             Character.MyCharacter.Reputation += ReputationReward;
         }
         else
         {
-            Company.MyCompany.AdjustFunds(Payment);
-            Company.MyCompany.AdjustReputation(ReputationReward);
+            Company.MyCompany.Funds += Payment;
+            Company.MyCompany.Reputation += ReputationReward;
         }
+
+        InformationPanelManager.Instance.DisplayMessage("Completed contract: " + Name, 1.0f);
     }
 
     public void CancelContract()
     {
-        if (Company.MyCompany == null)
+        if(Company.MyCompany == null)
             Character.MyCharacter.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         else
-            Company.MyCompany.AdjustReputation(-Mathf.FloorToInt((float)ReputationReward / 2));
+            Company.MyCompany.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
+        InformationPanelManager.Instance.DisplayMessage("Failed contract: " + Name, 1.0f);
+        SetPlayerActiveContract(null);
     }
 
-    public static Contract[] GenerateContracts()
+    public static Contract[] GenerateContracts(int contracts)
     {
         int team_size = Company.MyCompany == null ? 1 : Company.MyCompany.TeamSize;
-        int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation();
-        reputation = Mathf.Clamp(reputation, 0, 100);
+        //int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
+        //reputation = Mathf.Clamp(reputation, 0, 100);
+        int reputation = 100;
 
-        Contract[] generated_contracts = new Contract[3];
+        Contract[] generated_contracts = new Contract[contracts];
 
         int char_name_val = Character.MyCharacter.Name.Aggregate(0, (current, c) => current + c);
 
         Random.InitState(TimeManager.Week * TimeManager.Year * (char_name_val + 1));
 
         int contract_difficulty = team_size == 1 ? 1 : Mathf.CeilToInt(Mathf.Log(team_size, 2.0f));
+        Debug.Log(contract_difficulty);
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < generated_contracts.Length; i++)
         {
-            int[] contract_reqs = new int[5];
             int days_to_complete = Random.Range(7, 28);
+            var template = ContractTemplate.GetRandomTemplate();
+            SkillLevel[] skills_needed = new SkillLevel[template.SkillsNeeded.Length];
 
-            int skill_needed = Random.Range(0, 5);
-            int skill_needed_val = 0;
-            for (int d = 0; d < days_to_complete; d++)
-                skill_needed_val += contract_difficulty * Random.Range(3, 8);
-            contract_reqs[skill_needed] = skill_needed_val;
+            for(int j = 0; j < skills_needed.Length; j++)
+            {
+                int skill_sum = 0;
+                for(int d = 0; d < days_to_complete; d++)
+                    skill_sum += contract_difficulty * Random.Range(2, 8);
+                skills_needed[j] = new SkillLevel(template.SkillsNeeded[j], skill_sum);
+            }
+            
+            var contract_reqs = new SkillList(skills_needed);
 
-            int payout = Mathf.CeilToInt(skill_needed_val * 8 * Random.Range(0.8f, 1.2f));
+            int payout = Mathf.CeilToInt(skills_needed.Sum(x => x.Level) * 8 * Random.Range(0.8f, 1.2f));
             if (reputation < 10) payout = Mathf.CeilToInt(payout * 0.5f);
             if (reputation > 90) payout = Mathf.CeilToInt(payout * 2.0f);
             payout = 10 * ((payout + 9) / 10);
 
             generated_contracts[i] = new Contract(
-                "Default",
+                template.ContractName,
                 contract_reqs,
                 days_to_complete,
                 payout,
@@ -129,7 +197,7 @@ public class Contract
         if ((object)a == null || (object)b == null)
             return false;
 
-        return (a.Name == b.Name) && (a.SkillPointsNeeded == b.SkillPointsNeeded)
+        return (a.Name == b.Name) && (a.SkillPointsRemaining == b.SkillPointsRemaining)
                && (a.DaysToComplete == b.DaysToComplete) && (a.Payment == b.Payment)
                && (a.ReputationReward == b.ReputationReward);
     }
@@ -139,38 +207,37 @@ public class Contract
         return !(a == b);
     }
 
-    public override bool Equals(object obj)
+    protected bool Equals(Contract other)
     {
-        Contract contract = obj as Contract;
-        if ((object)contract == null)
-            return false;
-
-        return (Name == contract.Name) && (SkillPointsNeeded == contract.SkillPointsNeeded)
-               && (DaysToComplete == contract.DaysToComplete) && (Payment == contract.Payment)
-               && (ReputationReward == contract.ReputationReward);
+        return string.Equals(Name, other.Name) && 
+            Equals(SkillPointsRemaining, other.SkillPointsRemaining) && 
+            InitialPointsNeeded == other.InitialPointsNeeded && 
+            DaysToComplete == other.DaysToComplete && 
+            DaysRemaining == other.DaysRemaining && 
+            Payment == other.Payment && 
+            ReputationReward == other.ReputationReward;
     }
 
-    public bool Equals(Contract contract)
+    public override bool Equals(object obj)
     {
-        if ((object)contract == null)
-            return false;
-
-        return (Name == contract.Name) && (SkillPointsNeeded == contract.SkillPointsNeeded)
-               && (DaysToComplete == contract.DaysToComplete) && (Payment == contract.Payment)
-               && (ReputationReward == contract.ReputationReward);
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((Contract)obj);
     }
 
     public override int GetHashCode()
     {
         unchecked
         {
-            int hash = 17;
-            hash = hash * 23 + (Name != null ? Name.GetHashCode() : 1);
-            hash = hash * 23 + SkillPointsNeeded.GetHashCode();
-            hash = hash * 23 + DaysToComplete.GetHashCode();
-            hash = hash * 23 + Payment.GetHashCode();
-            hash = hash * 23 + ReputationReward.GetHashCode();
-            return hash;
+            int hash_code = (Name != null ? Name.GetHashCode() : 0);
+            hash_code = (hash_code * 397) ^ (SkillPointsRemaining != null ? SkillPointsRemaining.GetHashCode() : 0);
+            hash_code = (hash_code * 397) ^ InitialPointsNeeded;
+            hash_code = (hash_code * 397) ^ DaysToComplete;
+            hash_code = (hash_code * 397) ^ DaysRemaining;
+            hash_code = (hash_code * 397) ^ Payment;
+            hash_code = (hash_code * 397) ^ ReputationReward;
+            return hash_code;
         }
     }
 }

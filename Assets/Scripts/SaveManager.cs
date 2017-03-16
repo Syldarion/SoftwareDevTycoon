@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.SceneManagement;
 
@@ -21,7 +22,8 @@ public class SaveManager : Singleton<SaveManager>
 
     void Start()
     {
-
+        Debug.Log(string.Format("Save Path: {0}", Application.persistentDataPath));
+        LoadAllGames();
     }
 
     void Update()
@@ -33,23 +35,36 @@ public class SaveManager : Singleton<SaveManager>
     {
         Saves = new List<GameSave>();
 
-        BinaryFormatter formatter = new BinaryFormatter();
+        var formatter = new BinaryFormatter();
 
-        DirectoryInfo directory_info = new DirectoryInfo(Application.persistentDataPath);
+        var directory_info = new DirectoryInfo(Application.persistentDataPath);
         FileInfo[] file_info = directory_info.GetFiles("*.sdt").OrderByDescending(x => x.LastWriteTime).ToArray();
 
         foreach(FileInfo info in file_info)
         {
             FileStream stream = File.Open(info.FullName, FileMode.Open);
-            GameSave new_save = (GameSave)formatter.Deserialize(stream);
-            stream.Close();
-            Saves.Add(new_save);
+            try
+            {
+                var new_save = (GameSave)formatter.Deserialize(stream);
+                Saves.Add(new_save);
+            }
+            catch(SerializationException ex)
+            {
+                Debug.Log(string.Format("Failed to load game save {0}: {1}", info.Name, ex.Message));
+            }
+            finally
+            {
+                stream.Close();
+            }
         }
     }
 
     public IEnumerator LoadActiveSave()
     {
-        SceneManager.LoadScene("in_game");
+        SDTUIController.Instance.MainMenuCanvas.gameObject.SetActive(false);
+        SDTUIController.Instance.InGameCanvas.gameObject.SetActive(true);
+        TimeManager.Unlock();
+        TimeManager.Unpause();
         
         while (ContractManager.Instance == null)
             yield return null;
@@ -61,17 +76,21 @@ public class SaveManager : Singleton<SaveManager>
         ActiveSave.PopulateGameInfo();
     }
 
-    public void SaveGame(string savename)
+    public void SaveGame()
     {
-        savename = Path.GetInvalidFileNameChars()
-            .Aggregate(savename, (current, c) => current.Replace(c, '-'));
+        string save_name = string.Format("{0}-{1}",
+            Character.MyCharacter.Name.Replace(" ", string.Empty),
+            TimeManager.CurrentDate.ToString("ddMMyyyy"));
 
-        GameSave new_save = new GameSave(savename, DateTime.Now);
+        var new_save = new GameSave(save_name, DateTime.Now);
         new_save.SaveGame();
 
-        BinaryFormatter formatter = new BinaryFormatter();
+        var formatter = new BinaryFormatter();
 
-        FileStream stream = File.Create(Application.persistentDataPath + "/" + new_save.Name + ".sdt");
+        string file_path = string.Format("{0}/{1}.sdt",
+            Application.persistentDataPath,
+            save_name);
+        FileStream stream = File.Create(file_path);
         formatter.Serialize(stream, new_save);
         stream.Close();
     }

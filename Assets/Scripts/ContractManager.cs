@@ -13,22 +13,26 @@ using Random = UnityEngine.Random;
 public class ContractManager : Singleton<ContractManager>
 {
     public CanvasGroup ContractWorkPanel;
-    public GameObject ContractObjectPrefab;
+    public RectTransform ContractList;
+    public ContractObject ContractListObjectPrefab;
 
-    public Text ActiveContractNameText;
-    public Text ActiveContractPayText;
-    public Text ActiveContractDeadlineText;
-    public ProgressBar ActiveContractProgressBar;
+    public Text ContractName;
+    public Text WorkRequiredPRG;
+    public Text WorkRequiredUIX;
+    public Text WorkRequiredDBS;
+    public Text WorkRequiredNTW;
+    public Text WorkRequiredWEB;
+    public InputField ContractPay;
+    public InputField ContractDays;
+    public Button NegotiateButton;
+    public Button AcceptButton;
 
-    public Contract ActiveContract { get; private set; }
-
-    private bool open;
-    private bool locked;
+    private bool onCooldown;
 
     void Awake()
     {
         Instance = this;
-        locked = false;
+        onCooldown = false;
     }
 
     void Start()
@@ -37,106 +41,124 @@ public class ContractManager : Singleton<ContractManager>
 
     void Update()
     {
-        if (ControlKeys.GetControlKeyDown(ControlKeys.OPEN_CONTRACT_PANEL))
-        {
-            if (!open)
-                OpenContractForm();
-            else
-                CloseContractForm();
-        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+            CloseContractForm();
     }
 
     public void OpenContractForm()
     {
-        if (locked) return;
+        if (onCooldown) return;
 
-        open = true;
-
-        TimeManager.Pause();
-        TimeManager.Lock();
-
-        foreach (Contract contract in Contract.GenerateContracts())
+        foreach (Transform child in ContractList)
+            Destroy(child.gameObject);
+        foreach (Contract contract in Contract.GenerateContracts(10))
         {
-            ContractObject new_contract_object = Instantiate(ContractObjectPrefab).GetComponent<ContractObject>();
+            ContractObject new_contract_object = 
+                Instantiate(ContractListObjectPrefab);
 
             new_contract_object.PopulateContractInfo(contract);
-            new_contract_object.transform.SetParent(ContractWorkPanel.transform, false);
+            new_contract_object.transform.SetParent(ContractList, false);
         }
 
-        UIUtilities.ActivateCanvasGroup(ContractWorkPanel);
+        SDTUIController.Instance.OpenCanvas(ContractWorkPanel);
     }
 
     public void CloseContractForm()
     {
-        open = false;
-
-        TimeManager.Unlock();
-        TimeManager.Unpause();
-
-        foreach(Transform child in ContractWorkPanel.transform)
-            Destroy(child.gameObject);
-
-        locked = true;
+        SDTUIController.Instance.CloseCanvas(ContractWorkPanel);
 
         StartCoroutine(LockCooldown());
     }
 
+    public void PopulateContractDetail(Contract contract)
+    {
+        ContractName.text = contract.Name;
+
+        WorkRequiredPRG.text = contract.SkillPointsRemaining[Skill.Programming].Level.ToString();
+        WorkRequiredUIX.text = contract.SkillPointsRemaining[Skill.UserInterfaces].Level.ToString();
+        WorkRequiredDBS.text = contract.SkillPointsRemaining[Skill.Databases].Level.ToString();
+        WorkRequiredNTW.text = contract.SkillPointsRemaining[Skill.Networking].Level.ToString();
+        WorkRequiredWEB.text = contract.SkillPointsRemaining[Skill.WebDevelopment].Level.ToString();
+
+        ContractPay.text = contract.Payment.ToString();
+        ContractDays.text = contract.DaysToComplete.ToString();
+
+        NegotiateButton.onClick.RemoveAllListeners();
+        AcceptButton.onClick.RemoveAllListeners();
+
+        if (!contract.Negotiated)
+        {
+            NegotiateButton.onClick.AddListener(() =>
+            {
+                int new_p, new_d;
+                if (!int.TryParse(ContractPay.text, out new_p)) new_p = contract.Payment;
+                if (!int.TryParse(ContractDays.text, out new_d)) new_d = contract.DaysToComplete;
+                TryNegotiate(contract, new_p, new_d);
+                PopulateContractDetail(contract);
+            });
+        }
+        else
+        {
+            NegotiateButton.GetComponentInChildren<Text>().text = contract.SuccessfulNegotiation 
+                ? "Success" : "Fail";
+            NegotiateButton.image.color = contract.SuccessfulNegotiation 
+                ? Color.green : Color.red;
+            NegotiateButton.interactable = false;
+        }
+
+        AcceptButton.onClick.AddListener(() =>
+        {
+            contract.AcceptContract();
+            CloseContractForm();
+        });
+    }
+
+    public void TryNegotiate(Contract contract, int newPay, int newDays)
+    {
+        int acceptance_chance = GetNegotiationAcceptanceChance(contract, newPay, newDays);
+        int roll = Random.Range(0, 100) + 1;
+        bool success = roll <= acceptance_chance;
+        contract.Negotiated = true;
+        contract.SuccessfulNegotiation = false;
+
+        if (success)
+        {
+            contract.Payment = newPay;
+            contract.DaysToComplete = newDays;
+            contract.SuccessfulNegotiation = true;
+
+            PopulateContractDetail(contract);
+        }
+    }
+
+    public int GetNegotiationAcceptanceChance(Contract contract, int newPay, int newDays)
+    {
+        int reputation = Company.MyCompany == null
+            ? Character.MyCharacter.Reputation
+            : Company.MyCompany.Reputation;
+
+        float new_pay_percentage = (float)newPay / contract.Payment;
+        float new_day_percentage = (float)newDays / contract.DaysToComplete;
+
+        float pay_percentage_change = new_pay_percentage - 1.0f;
+        float day_percentage_change = new_day_percentage - 1.0f;
+
+        if (pay_percentage_change > 0.0f) pay_percentage_change *= (0.5f + reputation / 100.0f);
+        else pay_percentage_change *= (1.5f - reputation / 100.0f);
+        if (day_percentage_change > 0.0f) day_percentage_change *= (0.5f + reputation / 100.0f);
+        else day_percentage_change *= (1.5f - reputation / 100.0f);
+
+        float weighted_value = (pay_percentage_change * 0.75f) + (day_percentage_change * 0.25f);
+
+        return Mathf.CeilToInt(Mathf.Clamp(100.0f - (weighted_value * 100.0f), 0.0f, 100.0f));
+    }
+
     private IEnumerator LockCooldown()
     {
+        onCooldown = true;
         DateTime week_from_now = TimeManager.CurrentDate.AddDays(7.0);
         while (TimeManager.CurrentDate < week_from_now)
             yield return null;
-        locked = false;
-    }
-
-    public void SetActiveContract(Contract contract)
-    {
-        ActiveContract = contract;
-
-        if (ActiveContract != null)
-        {
-            TimeManager.PerDayEvent.AddListener(WorkOnActiveContract);
-            ActiveContractNameText.text = contract.Name;
-            ActiveContractPayText.text = contract.Payment.ToString("N");
-            ActiveContractDeadlineText.text = contract.DaysRemaining.ToString();
-        }
-        else
-        {
-            TimeManager.PerDayEvent.RemoveListener(WorkOnActiveContract);
-            ActiveContractNameText.text = "No Contract";
-            ActiveContractPayText.text = "N/A";
-            ActiveContractDeadlineText.text = "N/A";
-        }
-    }
-
-    public void WorkOnActiveContract()
-    {
-        //called daily in-game
-        if (ActiveContract == null) return;
-
-        ActiveContract.WorkContract();
-        UpdateActiveContractInfo();
-    }
-
-    public void UpdateActiveContractInfo()
-    {
-        if (ActiveContract != null)
-        {
-            ActiveContractDeadlineText.text = ActiveContract.DaysRemaining.ToString();
-
-            float contract_progress =
-                (float)(ActiveContract.TotalPointsNeeded - ActiveContract.SkillPointsNeeded.Sum()) /
-                ActiveContract.TotalPointsNeeded;
-
-            ActiveContractProgressBar.SetProgress(contract_progress);
-        }
-        else
-        {
-            //ActiveContractProgressBar.rectTransform.sizeDelta = MaxBarSize;
-            //ActiveContractProgressBar.color = Color.white;
-
-            //ActiveContractDeadlineBar.rectTransform.sizeDelta = MaxBarSize;
-            //ActiveContractDeadlineBar.color = Color.white;
-        }
+        onCooldown = false;
     }
 }

@@ -8,11 +8,19 @@ public class StatusBarManager : Singleton<StatusBarManager>
     public Text CurrentFundsText;
     public Text CurrentDateText;
 
+    public Color PositiveFundsColor;
+    public Color NegativeFundsColor;
+    public Color PausedTimeColor;
+    public Color UnpausedTimeColor;
+
+    void Awake()
+    {
+        Instance = this;
+    }
+
     void Start()
     {
-        TimeManager.PerDayEvent.AddListener(UpdateFunds);
-        TimeManager.PerDayEvent.AddListener(UpdateTime);
-        TimeManager.OnTogglePauseEvent.AddListener(UpdateTimeColor);
+        SetupEvents();
     }
 
     void Update()
@@ -20,11 +28,16 @@ public class StatusBarManager : Singleton<StatusBarManager>
 
     }
 
-    public void UpdateFunds()
+    public void SetupEvents()
     {
-        int funds_value = Company.MyCompany == null ? Character.MyCharacter.Money : Company.MyCompany.Funds();
-        CurrentFundsText.text = funds_value.ToString("C");
-        CurrentFundsText.color = funds_value < 0 ? Color.red : Color.black;
+        TimeManager.PerDayEvent.AddListener(UpdateTime);
+        TimeManager.OnTogglePauseEvent.AddListener(UpdateTimeColor);
+    }
+
+    public void UpdateFunds(int value)
+    {
+        CurrentFundsText.text = value.ToString("C0");
+        CurrentFundsText.color = value < 0 ? NegativeFundsColor : PositiveFundsColor;
     }
 
     public void UpdateTime()
@@ -34,6 +47,6 @@ public class StatusBarManager : Singleton<StatusBarManager>
 
     public void UpdateTimeColor(bool paused)
     {
-        CurrentDateText.color = paused ? Color.red : Color.black;
+        CurrentDateText.color = paused ? PausedTimeColor : UnpausedTimeColor;
     }
 }

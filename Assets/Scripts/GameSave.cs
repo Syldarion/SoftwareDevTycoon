@@ -11,13 +11,13 @@ public class GameSave
     [SerializeField]
     private Character myCharacter;
     [SerializeField]
-    private Contract activeContract;
-    [SerializeField]
     private string dateString;
     [SerializeField]
     private JobApplication[] activeApplications;
     [SerializeField]
     private Job myJob;
+    [SerializeField]
+    private Company myCompany;
 
     public GameSave(string name, DateTime lastModDate)
     {
@@ -35,20 +35,15 @@ public class GameSave
     public void PopulateGameInfo()
     {
         LoadCharacterInfo();
-        LoadContractInfo();
         LoadTimeInfo();
-        LoadJobManagerInfo();
         LoadJobInfo();
+        LoadCompanyInfo();
     }
 
     private void LoadCharacterInfo()
     {
         Character.MyCharacter = myCharacter;
-    }
-
-    private void LoadContractInfo()
-    {
-        ContractManager.Instance.SetActiveContract(activeContract);
+        Character.MyCharacter.SetupEvents();
     }
 
     private void LoadTimeInfo()
@@ -65,24 +60,33 @@ public class GameSave
         }
     }
 
-    private void LoadJobManagerInfo()
+    private void LoadJobInfo()
     {
         foreach (JobApplication app in activeApplications)
             JobManager.Instance.ActiveApplications.Add(app);
+
+        if (myJob != null)
+        {
+            Job.MyJob = myJob;
+            Job.MyJob.SetupEvents();
+        }
     }
 
-    private void LoadJobInfo()
+    private void LoadCompanyInfo()
     {
-        Job.MyJob = myJob;
-        Job.MyJob.SetupEvents();
+        if (myCompany != null)
+        {
+            Company.MyCompany = myCompany;
+            Company.MyCompany.SetupEvents();
+        }
     }
 
     public void SaveGame()
     {
         myCharacter = Character.MyCharacter;
-        activeContract = ContractManager.Instance.ActiveContract;
         dateString = TimeManager.DateString;
         activeApplications = JobManager.Instance.ActiveApplications.ToArray();
         myJob = Job.MyJob;
+        myCompany = Company.MyCompany;
     }
 }

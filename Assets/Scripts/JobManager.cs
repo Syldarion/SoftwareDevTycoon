@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System;
 
 public class JobManager : Singleton<JobManager>
 {
@@ -26,11 +27,7 @@ public class JobManager : Singleton<JobManager>
     public Text JobTitleText;
     public Text JobCompanyText;
     public Text JobPayText;
-    public Text ActiveTaskNameText;
-    public ProgressBar ActiveTaskProgressBar;
-    public Text ActiveTaskDaysText;
-    public Text ProjectNameText;
-    public ProgressBar ProjectProgressBar;
+    public Text JobHireDateText;
 
     [Header("Variables")]
     public int[] SkillRequirementFilters;
@@ -38,13 +35,12 @@ public class JobManager : Singleton<JobManager>
 
     private bool applicationSectionOpen = true;
     private bool searchSectionOpen = true;
-    private bool open;
 
     void Awake()
     {
         Instance = this;
 
-        SkillRequirementFilters = new int[5];
+        SkillRequirementFilters = new int[SkillInfo.COUNT];
         for (int i = 0; i < 5; i++)
         {
             SkillRequirementFilters[i] = Character.MyCharacter.Skills[i].Level;
@@ -70,61 +66,36 @@ public class JobManager : Singleton<JobManager>
 
     void Update()
     {
-        if (ControlKeys.GetControlKeyDown(ControlKeys.OPEN_JOB_PANEL))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (!open && Job.MyJob == null)
-                OpenJobSearch();
-            else if (Job.MyJob == null)
-                CloseJobSearch();
-            else if (!open)
-                OpenJobInfo();
-            else
-                CloseJobInfo();
-        }
-
-        if (ControlKeys.GetControlKeyDown(ControlKeys.PRINT_JOB_DEBUG))
-        {
-            if (Job.MyJob == null)
-                Debug.Log("No job");
-            else
-                Debug.Log(string.Format(
-                    "Current Job Info\nCompany: {0}\nSalary: {1}\nTitle: {2}\nPerformance: {3}",
-                    Job.MyJob.CompanyName,
-                    Job.MyJob.Salary,
-                    Job.MyJob.CurrentTitle.Name,
-                    Job.MyJob.Performance));
+            CloseJobSearch();
+            CloseJobInfo();
         }
     }
 
     public void UpdateJobInfo()
     {
-        if (Job.MyJob != null)
-        {
-            
-        }
+        if (Job.MyJob == null) return;
     }
 
     public void OpenJobSearch()
     {
-        open = true;
-
-        TimeManager.Pause();
-        TimeManager.Lock();
-
-        UIUtilities.ActivateCanvasGroup(JobSearchPanel);
+        if (Job.MyJob != null) return;
         
-        PopulateApplicationList();
-        PopulateSearchList();
+        SDTUIController.Instance.OpenCanvas(JobSearchPanel);
+        
+        RefreshApplicationList();
+        RefreshSearchList();
     }
 
-    public void PopulateApplicationList()
+    public void RefreshApplicationList()
     {
         foreach (Transform child in ApplicationListTransform)
             Destroy(child.gameObject);
         
         foreach (JobApplication application in ActiveApplications)
         {
-            var current = application;
+            JobApplication current = application;
 
             JobListItem new_list_item = Instantiate(JobListItemPrefab);
             new_list_item.transform.SetParent(ApplicationListTransform, false);
@@ -159,7 +130,7 @@ public class JobManager : Singleton<JobManager>
         }
     }
 
-    public void PopulateSearchList()
+    public void RefreshSearchList()
     {
         SearchListItems = new List<JobListItem>();
         foreach (Transform child in SearchListTransform)
@@ -185,36 +156,24 @@ public class JobManager : Singleton<JobManager>
 
     public void CloseJobSearch()
     {
-        open = false;
-        UIUtilities.DeactivateCanvasGroup(JobSearchPanel);
-
-        TimeManager.Unlock();
-        TimeManager.Unpause();
+        SDTUIController.Instance.CloseCanvas(JobSearchPanel);
     }
 
     public void OpenJobInfo()
     {
         if (Job.MyJob == null) return;
 
-        TimeManager.Pause();
-        TimeManager.Lock();
-
-        open = true;
-        TimeManager.Pause();
-        UIUtilities.ActivateCanvasGroup(JobInfoPanel);
-
         JobTitleText.text = Job.MyJob.CurrentTitle.Name;
         JobCompanyText.text = Job.MyJob.CompanyName;
-        JobPayText.text = Job.MyJob.Salary.ToString();
+        JobPayText.text = string.Format("Salary: {0}", Job.MyJob.Salary.ToString("C0"));
+        JobHireDateText.text = string.Format("Hire Date: {0}", DateTime.FromBinary(Job.MyJob.HireDateBinary).ToString("dd/MM/yyyy"));
+
+        SDTUIController.Instance.OpenCanvas(JobInfoPanel);
     }
 
     public void CloseJobInfo()
     {
-        open = false;
-        UIUtilities.DeactivateCanvasGroup(JobInfoPanel);
-
-        TimeManager.Unlock();
-        TimeManager.Unpause();
+        SDTUIController.Instance.CloseCanvas(JobInfoPanel);
     }
 
     public void FilterSearchResults()
@@ -225,8 +184,9 @@ public class JobManager : Singleton<JobManager>
                 && !list_item.ListItemJob.CurrentTitle.Name.Contains(JobTitleFilter.text));
             if (JobSalaryFilter.text != string.Empty && list_item.ListItemJob.Salary < int.Parse(JobSalaryFilter.text))
                 keep_active = false;
-            for (int i = 0; i < 5; i++)
-                if (list_item.ListItemJob.CurrentTitle.SkillRequirements[i] > SkillRequirementFilters[i])
+            SkillList job_reqs = list_item.ListItemJob.CurrentTitle.SkillRequirements;
+            for (int i = 0; i < job_reqs.Length; i++)
+                if (job_reqs[i] > SkillRequirementFilters[(int)job_reqs[i].Skill])
                     keep_active = false;
             list_item.gameObject.SetActive(keep_active);
         }
@@ -260,15 +220,15 @@ public class JobManager : Singleton<JobManager>
 
     public void CreateJobApplication(Job job)
     {
-        JobApplication new_application = new JobApplication(job);
+        var new_application = new JobApplication(job);
         ActiveApplications.Add(new_application);
-        PopulateApplicationList();
+        RefreshApplicationList();
     }
 
     public void RemoveJobApplication(JobApplication application)
     {
         ActiveApplications.Remove(application);
-        PopulateApplicationList();
+        RefreshApplicationList();
     }
 
     public void CheckActiveApplications()
