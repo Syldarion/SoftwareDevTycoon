@@ -40,6 +40,8 @@ public class Contract
     public int DaysRemaining;
     public int Payment;
     public int ReputationReward;
+    public bool Negotiated;
+    public bool SuccessfulNegotiation;
 
     public Contract(string name, SkillList reqs, int days, int currency, int rep)
     {
@@ -50,6 +52,8 @@ public class Contract
         DaysRemaining = days;
         Payment = currency;
         ReputationReward = rep;
+        Negotiated = false;
+        SuccessfulNegotiation = false;
     }
 
     public void AcceptContract()
@@ -137,14 +141,14 @@ public class Contract
         SetPlayerActiveContract(null);
     }
 
-    public static Contract[] GenerateContracts()
+    public static Contract[] GenerateContracts(int contracts)
     {
         int team_size = Company.MyCompany == null ? 1 : Company.MyCompany.TeamSize;
         //int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
         //reputation = Mathf.Clamp(reputation, 0, 100);
         int reputation = 100;
 
-        Contract[] generated_contracts = new Contract[3];
+        Contract[] generated_contracts = new Contract[contracts];
 
         int char_name_val = Character.MyCharacter.Name.Aggregate(0, (current, c) => current + c);
 

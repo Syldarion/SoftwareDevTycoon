@@ -27,6 +27,12 @@ public class ConsoleCommand
             else
                 Company.MyCompany.Reputation = value;
         }),
+        new ConsoleCommand("setskill", "usage: setskil {skill} {value}", "Successfully set skill!", 2, x =>
+        {
+            int skill = Convert.ToInt32(x[0]);
+            int value = Convert.ToInt32(x[1]);
+            Character.MyCharacter.Skills[skill].Level = value;
+        })
     };
 
     public string CommandName;

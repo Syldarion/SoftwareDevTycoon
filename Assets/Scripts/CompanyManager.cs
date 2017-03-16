@@ -501,10 +501,6 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void CreateCompany()
     {
-        if(Character.MyCharacter.ActiveContract != null)
-            Character.MyCharacter.ActiveContract.CancelContract();
-        if(Job.MyJob != null)
-            Job.MyJob.FirePlayer();
         Company.MyCompany = Company.CreateNewCompany(CompanyNameInput.text, int.Parse(FirstOfficeSpaceInput.text));
         CloseNewCompanyPanel();
     }
@@ -530,11 +526,10 @@ public class CompanyManager : Singleton<CompanyManager>
             () =>
             {
                 Company.MyCompany.TrainEmployee(employee, training_cost);
+                PopulateEmployeeDetail(employee);
                 DialogueBox.Instance.Cleanup();
             },
             () => DialogueBox.Instance.Cleanup());
-
-        PopulateEmployeeDetail(employee);
     }
 
     public void OnExpandCurrentOfficesClick()

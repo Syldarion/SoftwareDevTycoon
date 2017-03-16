@@ -13,7 +13,19 @@ using Random = UnityEngine.Random;
 public class ContractManager : Singleton<ContractManager>
 {
     public CanvasGroup ContractWorkPanel;
-    public GameObject ContractObjectPrefab;
+    public RectTransform ContractList;
+    public ContractObject ContractListObjectPrefab;
+
+    public Text ContractName;
+    public Text WorkRequiredPRG;
+    public Text WorkRequiredUIX;
+    public Text WorkRequiredDBS;
+    public Text WorkRequiredNTW;
+    public Text WorkRequiredWEB;
+    public InputField ContractPay;
+    public InputField ContractDays;
+    public Button NegotiateButton;
+    public Button AcceptButton;
 
     private bool onCooldown;
 
@@ -37,14 +49,15 @@ public class ContractManager : Singleton<ContractManager>
     {
         if (onCooldown) return;
 
-        foreach (Transform child in ContractWorkPanel.transform)
+        foreach (Transform child in ContractList)
             Destroy(child.gameObject);
-        foreach (Contract contract in Contract.GenerateContracts())
+        foreach (Contract contract in Contract.GenerateContracts(10))
         {
-            ContractObject new_contract_object = Instantiate(ContractObjectPrefab).GetComponent<ContractObject>();
+            ContractObject new_contract_object = 
+                Instantiate(ContractListObjectPrefab);
 
             new_contract_object.PopulateContractInfo(contract);
-            new_contract_object.transform.SetParent(ContractWorkPanel.transform, false);
+            new_contract_object.transform.SetParent(ContractList, false);
         }
 
         SDTUIController.Instance.OpenCanvas(ContractWorkPanel);
@@ -55,6 +68,89 @@ public class ContractManager : Singleton<ContractManager>
         SDTUIController.Instance.CloseCanvas(ContractWorkPanel);
 
         StartCoroutine(LockCooldown());
+    }
+
+    public void PopulateContractDetail(Contract contract)
+    {
+        ContractName.text = contract.Name;
+
+        WorkRequiredPRG.text = contract.SkillPointsRemaining[Skill.Programming].Level.ToString();
+        WorkRequiredUIX.text = contract.SkillPointsRemaining[Skill.UserInterfaces].Level.ToString();
+        WorkRequiredDBS.text = contract.SkillPointsRemaining[Skill.Databases].Level.ToString();
+        WorkRequiredNTW.text = contract.SkillPointsRemaining[Skill.Networking].Level.ToString();
+        WorkRequiredWEB.text = contract.SkillPointsRemaining[Skill.WebDevelopment].Level.ToString();
+
+        ContractPay.text = contract.Payment.ToString();
+        ContractDays.text = contract.DaysToComplete.ToString();
+
+        NegotiateButton.onClick.RemoveAllListeners();
+        AcceptButton.onClick.RemoveAllListeners();
+
+        if (!contract.Negotiated)
+        {
+            NegotiateButton.onClick.AddListener(() =>
+            {
+                int new_p, new_d;
+                if (!int.TryParse(ContractPay.text, out new_p)) new_p = contract.Payment;
+                if (!int.TryParse(ContractDays.text, out new_d)) new_d = contract.DaysToComplete;
+                TryNegotiate(contract, new_p, new_d);
+                PopulateContractDetail(contract);
+            });
+        }
+        else
+        {
+            NegotiateButton.GetComponentInChildren<Text>().text = contract.SuccessfulNegotiation 
+                ? "Success" : "Fail";
+            NegotiateButton.image.color = contract.SuccessfulNegotiation 
+                ? Color.green : Color.red;
+            NegotiateButton.interactable = false;
+        }
+
+        AcceptButton.onClick.AddListener(() =>
+        {
+            contract.AcceptContract();
+            CloseContractForm();
+        });
+    }
+
+    public void TryNegotiate(Contract contract, int newPay, int newDays)
+    {
+        int acceptance_chance = GetNegotiationAcceptanceChance(contract, newPay, newDays);
+        int roll = Random.Range(0, 100) + 1;
+        bool success = roll <= acceptance_chance;
+        contract.Negotiated = true;
+        contract.SuccessfulNegotiation = false;
+
+        if (success)
+        {
+            contract.Payment = newPay;
+            contract.DaysToComplete = newDays;
+            contract.SuccessfulNegotiation = true;
+
+            PopulateContractDetail(contract);
+        }
+    }
+
+    public int GetNegotiationAcceptanceChance(Contract contract, int newPay, int newDays)
+    {
+        int reputation = Company.MyCompany == null
+            ? Character.MyCharacter.Reputation
+            : Company.MyCompany.Reputation;
+
+        float new_pay_percentage = (float)newPay / contract.Payment;
+        float new_day_percentage = (float)newDays / contract.DaysToComplete;
+
+        float pay_percentage_change = new_pay_percentage - 1.0f;
+        float day_percentage_change = new_day_percentage - 1.0f;
+
+        if (pay_percentage_change > 0.0f) pay_percentage_change *= (0.5f + reputation / 100.0f);
+        else pay_percentage_change *= (1.5f - reputation / 100.0f);
+        if (day_percentage_change > 0.0f) day_percentage_change *= (0.5f + reputation / 100.0f);
+        else day_percentage_change *= (1.5f - reputation / 100.0f);
+
+        float weighted_value = (pay_percentage_change * 0.75f) + (day_percentage_change * 0.25f);
+
+        return Mathf.CeilToInt(Mathf.Clamp(100.0f - (weighted_value * 100.0f), 0.0f, 100.0f));
     }
 
     private IEnumerator LockCooldown()
