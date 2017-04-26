@@ -51,7 +51,8 @@ public class ContractManager : Singleton<ContractManager>
 
         foreach (Transform child in ContractList)
             Destroy(child.gameObject);
-        foreach (Contract contract in Contract.GenerateContracts(10))
+        Contract[] generated_contracts = Contract.GenerateContracts(10);
+        foreach (Contract contract in generated_contracts)
         {
             ContractObject new_contract_object = 
                 Instantiate(ContractListObjectPrefab);
@@ -60,6 +61,7 @@ public class ContractManager : Singleton<ContractManager>
             new_contract_object.transform.SetParent(ContractList, false);
         }
 
+        PopulateContractDetail(generated_contracts[0]);
         SDTUIController.Instance.OpenCanvas(ContractWorkPanel);
     }
 
@@ -68,6 +70,14 @@ public class ContractManager : Singleton<ContractManager>
         SDTUIController.Instance.CloseCanvas(ContractWorkPanel);
 
         StartCoroutine(LockCooldown());
+    }
+
+    public void CancelActiveContract()
+    {
+        if (Character.MyCharacter.ActiveContract != null)
+            Character.MyCharacter.ActiveContract.CancelContract();
+        if (Company.MyCompany.ActiveContract != null)
+            Company.MyCompany.ActiveContract.CancelContract();
     }
 
     public void PopulateContractDetail(Contract contract)

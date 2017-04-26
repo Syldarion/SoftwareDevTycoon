@@ -156,10 +156,14 @@ public class MainMenuController : Singleton<MainMenuController>
 
     public void CheckBirthdayInput()
     {
+        if (string.IsNullOrEmpty(CharacterBirthdayDayInput.text) ||
+            string.IsNullOrEmpty(CharacterBirthdayMonthInput.text) ||
+            string.IsNullOrEmpty(CharacterBirthdayYearInput.text))
+            return;
+
         DateTime entered_date = ConstructDateFromInput();
         if(entered_date > latestBirthday)
             entered_date = latestBirthday;
-
         CharacterBirthdayDayInput.text = entered_date.Day.ToString();
         CharacterBirthdayMonthInput.text = entered_date.Month.ToString();
         CharacterBirthdayYearInput.text = entered_date.Year.ToString();
@@ -234,8 +238,10 @@ public class MainMenuController : Singleton<MainMenuController>
 
         new_character.SetupEvents();
 
-        SDTUIController.Instance.MainMenuCanvas.gameObject.SetActive(false);
-        SDTUIController.Instance.InGameCanvas.gameObject.SetActive(true);
+        CanvasGroup mm_canvas = SDTUIController.Instance.MainMenuCanvas.GetComponent<CanvasGroup>();
+        CanvasGroup ig_canvas = SDTUIController.Instance.InGameCanvas.GetComponent<CanvasGroup>();
+        mm_canvas.alpha = 0; mm_canvas.interactable = false; mm_canvas.blocksRaycasts = false;
+        ig_canvas.alpha = 1; ig_canvas.interactable = true; ig_canvas.blocksRaycasts = true;
 
         TimeManager.Unlock();
         TimeManager.Unpause();

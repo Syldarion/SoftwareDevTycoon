@@ -76,6 +76,7 @@ public class GameSave
     {
         if (myCompany != null)
         {
+            Debug.Log("Has Company");
             Company.MyCompany = myCompany;
             Company.MyCompany.SetupEvents();
         }
