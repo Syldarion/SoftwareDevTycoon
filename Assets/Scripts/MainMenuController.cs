@@ -66,7 +66,6 @@ public class MainMenuController : Singleton<MainMenuController>
     public Text ConsoleText;
     public RectTransform ConsoleMessageList;
     public Image CursorImage;
-    public Animator ConsoleScreenAnimator;
 
     private Queue<MessageItem> messageQueue;
     private bool cursorFlashing;
@@ -311,16 +310,6 @@ public class MainMenuController : Singleton<MainMenuController>
         
     }
 
-    public void OpenConsoleScreen()
-    {
-        ConsoleScreenAnimator.SetTrigger("OpenTrigger");
-    }
-
-    public void CloseConsoleScreen()
-    {
-        ConsoleScreenAnimator.SetTrigger("CloseTrigger");
-    }
-
     IEnumerator SwitchConsoleScreenPanel(CanvasGroup newPanel)
     {
         if(activePanel != null)
@@ -333,22 +322,12 @@ public class MainMenuController : Singleton<MainMenuController>
                 yield return null;
             }
             activePanel.alpha = 0.0f;
-            CloseConsoleScreen();
-            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("CloseAnimation"))
-                yield return null;
-            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("WaitState"))
-                yield return null;
         }
 
         activePanel = newPanel;
 
         if(activePanel != null)
         {
-            OpenConsoleScreen();
-            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("OpenAnimation"))
-                yield return null;
-            while (!ConsoleScreenAnimator.GetCurrentAnimatorStateInfo(0).IsName("WaitState"))
-                yield return null;
             while(activePanel.alpha < 1.0f)
             {
                 activePanel.alpha += 2.0f * Time.deltaTime;
