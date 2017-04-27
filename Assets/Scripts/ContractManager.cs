@@ -98,6 +98,10 @@ public class ContractManager : Singleton<ContractManager>
 
         if (!contract.Negotiated)
         {
+            NegotiateButton.GetComponentInChildren<Text>().text = "Negotiate";
+            NegotiateButton.image.color = Color.white;
+            NegotiateButton.interactable = true;
+
             NegotiateButton.onClick.AddListener(() =>
             {
                 int new_p, new_d;

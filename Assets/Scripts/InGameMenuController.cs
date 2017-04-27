@@ -41,7 +41,7 @@ public class InGameMenuController : MonoBehaviour
     private IEnumerator OpenMenu()
     {
         Vector2 pos;
-        while(MenuPanel.anchoredPosition.x < 0)
+        while(MenuPanel.anchoredPosition.x < 350)
         {
             pos = MenuPanel.anchoredPosition;
             pos.x += 1000.0f * Time.deltaTime;
@@ -49,7 +49,7 @@ public class InGameMenuController : MonoBehaviour
             yield return null;
         }
         pos = MenuPanel.anchoredPosition;
-        pos.x = 0.0f;
+        pos.x = 350.0f;
         MenuPanel.anchoredPosition = pos;
         ToggleMenuImage.rectTransform.Rotate(0.0f, 0.0f, 180.0f);
         menuOpen = true;
@@ -58,7 +58,7 @@ public class InGameMenuController : MonoBehaviour
     private IEnumerator CloseMenu()
     {
         Vector2 pos;
-        while (MenuPanel.anchoredPosition.x > -500)
+        while (MenuPanel.anchoredPosition.x > -100)
         {
             pos = MenuPanel.anchoredPosition;
             pos.x -= 1000.0f * Time.deltaTime;
@@ -66,7 +66,7 @@ public class InGameMenuController : MonoBehaviour
             yield return null;
         }
         pos = MenuPanel.anchoredPosition;
-        pos.x = -500.0f;
+        pos.x = -100.0f;
         MenuPanel.anchoredPosition = pos;
         ToggleMenuImage.rectTransform.Rotate(0.0f, 0.0f, 180.0f);
         menuOpen = false;

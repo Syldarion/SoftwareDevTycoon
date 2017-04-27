@@ -115,6 +115,10 @@ public class CompanyManager : Singleton<CompanyManager>
     public Text MoveEmployeeCostText;
     public Button MoveEmployeeButton;
 
+    private Office selectedOffice;
+    private Employee selectedEmployee;
+    private Project selectedProject;
+
     private bool currentOfficesSectionOpen = true;
     private bool officesForSaleSectionOpen = true;
     private bool currentEmployeesSectionOpen = true;
@@ -323,6 +327,9 @@ public class CompanyManager : Singleton<CompanyManager>
         OfficeAddSpaceButton.gameObject.SetActive(is_company_office);
         OfficeBuyButton.gameObject.SetActive(!is_company_office);
         OfficeSellButton.gameObject.SetActive(is_company_office && Company.MyCompany.CompanyOffices.Count > 1);
+
+        selectedOffice = office;
+
     }
 
     public void PopulateEmployeeDetail()
@@ -401,6 +408,8 @@ public class CompanyManager : Singleton<CompanyManager>
         EmployeeFireButton.gameObject.SetActive(works_for_company);
         EmployeeTrainButton.gameObject.SetActive(works_for_company);
         EmployeeMoveButton.gameObject.SetActive(works_for_company);
+
+        selectedEmployee = employee;
     }
 
     public void PopulateProjectDetail(Project project)
@@ -442,6 +451,8 @@ public class CompanyManager : Singleton<CompanyManager>
         ProjectSellButton.gameObject.SetActive(
             project.CurrentStatus == Project.Status.InProgress ||
             project.CurrentStatus == Project.Status.Halted);
+
+        selectedProject = project;
     }
 
     public void OpenNewProjectPanel()
@@ -663,5 +674,22 @@ public class CompanyManager : Singleton<CompanyManager>
         MoveEmployeePanel.alpha = 1;
         MoveEmployeePanel.interactable = true;
         MoveEmployeePanel.blocksRaycasts = true;
+    }
+
+    private IEnumerator UpdateOpenCompanyUI()
+    {
+        while (gameObject.activeSelf)
+        {
+            if (SDTUIController.Instance.IsCanvasOpen(EmployeesPanel))
+            {
+                PopulateEmployeeDetail(selectedEmployee);
+            }
+            if (SDTUIController.Instance.IsCanvasOpen(ProjectsPanel))
+            {
+                PopulateProjectDetail(selectedProject);
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
     }
 }

@@ -227,7 +227,7 @@ public class Company
 
     public void SetActiveProject(Project project)
     {
-        if (project == null && 
+        if (project == null || 
             (project.CurrentStatus == Project.Status.InProgress || 
             project.CurrentStatus == Project.Status.Halted)) return;
 
