@@ -92,7 +92,7 @@ public class JobManager : Singleton<JobManager>
     {
         foreach (Transform child in ApplicationListTransform)
             Destroy(child.gameObject);
-        
+
         foreach (JobApplication application in ActiveApplications)
         {
             JobApplication current = application;
@@ -104,20 +104,10 @@ public class JobManager : Singleton<JobManager>
             if (current.Accepted)
                 new_list_item.SetupActionButton(Color.green, "Accepted", () =>
                 {
-                    DialogueBox.Instance.CreateYesNoDialogue("Start this job?",
-                        () =>
-                        {
-                            new_list_item.ListItemJob.HirePlayer();
-                            CloseJobSearch();
-                            DialogueBox.Instance.Cleanup();
-                            Destroy(new_list_item.gameObject);
-                            ActiveApplications.Remove(current);
-                        },
-                        () =>
-                        {
-                            DialogueBox.Instance.Cleanup();
-                            Destroy(new_list_item.gameObject);
-                        });
+                    new_list_item.ListItemJob.HirePlayer();
+                    CloseJobSearch();
+                    Destroy(new_list_item.gameObject);
+                    ActiveApplications.Remove(current);
                 });
             else if (current.Waiting)
                 new_list_item.SetupActionButton(Color.yellow, "Waiting...", () => { });

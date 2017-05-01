@@ -43,10 +43,10 @@ public class SaveGameObject : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     public void TryDeleteGame()
     {
-        DialogueBox.Instance.CreateYesNoDialogue(
+        DialogueManager.Instance.CreateYesNoDialogue(
             "Are you sure you want to delete this save?",
             DeleteGame,
-            DialogueBox.Instance.Cleanup);
+            null);
     }
 
     public void DeleteGame()

@@ -518,13 +518,7 @@ public class CompanyManager : Singleton<CompanyManager>
 
     public void ConfirmBankruptcy()
     {
-        DialogueBox.Instance.CreateYesNoDialogue("Are you sure you want to declare bankruptcy?",
-                                                 () =>
-                                                 {
-                                                     Company.MyCompany.DeclareBankruptcy();
-                                                     DialogueBox.Instance.Cleanup();
-                                                 },
-                                                 () => { DialogueBox.Instance.Cleanup(); });
+        
     }
 
     public void TryTrainEmployee(Employee employee)
@@ -532,15 +526,14 @@ public class CompanyManager : Singleton<CompanyManager>
         int skill_sum = Mathf.Clamp(employee.Skills.Sum(), 1, int.MaxValue);
         int training_cost = Company.TRAINING_COST_MULTIPLIER * skill_sum;
 
-        DialogueBox.Instance.CreateYesNoDialogue(
+        DialogueManager.Instance.CreateYesNoDialogue(
             string.Format("Train {0} for {1:C0}?", employee.Name, training_cost),
             () =>
             {
                 Company.MyCompany.TrainEmployee(employee, training_cost);
                 PopulateEmployeeDetail(employee);
-                DialogueBox.Instance.Cleanup();
             },
-            () => DialogueBox.Instance.Cleanup());
+            null);
     }
 
     public void OnExpandCurrentOfficesClick()

@@ -76,3 +76,11 @@ public static class CompanyNames
         return Names[Random.Range(0, Names.Length)];
     }
 }
+
+public static class DialogueMessage
+{
+    public static string WelcomeMessage =
+        "Welcome to Software Dev Tycoon, {0}! " +
+        "You are the founder of a fledgling software company. " +
+        "Uh. Make some software I guess. I'll try to help you out at first.";
+}

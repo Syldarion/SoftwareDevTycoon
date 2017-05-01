@@ -239,6 +239,11 @@ public class MainMenuController : Singleton<MainMenuController>
 
         GameManager.ActiveCharacter = new_character;
 
+        DialogueManager.Instance.CreateMessageDialogue(
+            string.Format(
+                DialogueMessage.WelcomeMessage, 
+                new_character.Name));
+
         CanvasGroup mm_canvas = SDTUIController.Instance.MainMenuCanvas.GetComponent<CanvasGroup>();
         CanvasGroup ig_canvas = SDTUIController.Instance.InGameCanvas.GetComponent<CanvasGroup>();
         mm_canvas.alpha = 0; mm_canvas.interactable = false; mm_canvas.blocksRaycasts = false;
