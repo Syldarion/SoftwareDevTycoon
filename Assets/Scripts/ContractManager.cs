@@ -74,8 +74,8 @@ public class ContractManager : Singleton<ContractManager>
 
     public void CancelActiveContract()
     {
-        if (Character.MyCharacter.ActiveContract != null)
-            Character.MyCharacter.ActiveContract.CancelContract();
+        if (GameManager.ActiveCharacter.ActiveContract != null)
+            GameManager.ActiveCharacter.ActiveContract.CancelContract();
         if (Company.MyCompany.ActiveContract != null)
             Company.MyCompany.ActiveContract.CancelContract();
     }
@@ -148,7 +148,7 @@ public class ContractManager : Singleton<ContractManager>
     public int GetNegotiationAcceptanceChance(Contract contract, int newPay, int newDays)
     {
         int reputation = Company.MyCompany == null
-            ? Character.MyCharacter.Reputation
+            ? GameManager.ActiveCharacter.Reputation
             : Company.MyCompany.Reputation;
 
         float new_pay_percentage = (float)newPay / contract.Payment;

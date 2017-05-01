@@ -17,7 +17,6 @@ public class SaveManager : Singleton<SaveManager>
     void Awake()
     {
         Instance = this;
-        DontDestroyOnLoad(gameObject);
     }
 
     void Start()
@@ -79,7 +78,7 @@ public class SaveManager : Singleton<SaveManager>
     public void SaveGame()
     {
         string save_name = string.Format("{0}-{1}",
-            Character.MyCharacter.Name.Replace(" ", string.Empty),
+            GameManager.ActiveCharacter.Name.Replace(" ", string.Empty),
             TimeManager.CurrentDate.ToString("ddMMyyyy"));
 
         var new_save = new GameSave(save_name, DateTime.Now);

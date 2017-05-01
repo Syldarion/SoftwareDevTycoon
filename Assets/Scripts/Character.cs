@@ -92,8 +92,6 @@ public class Person
 [Serializable]
 public class Character : Person
 {
-    public static Character MyCharacter;
-
     public int Funds
     {
         get { return funds; }
@@ -119,7 +117,6 @@ public class Character : Person
 
     public Character()
     {
-        MyCharacter = this;
     }
 
     public void SetupEvents()

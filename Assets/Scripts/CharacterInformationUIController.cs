@@ -32,17 +32,17 @@ public class CharacterInformationUIController : MonoBehaviour
     public void OpenCharacterInformationForm()
     {
         NameAgeText.text = string.Format("{0} ({1})",
-            Character.MyCharacter.Name, Character.MyCharacter.Age);
-        LocationText.text = Character.MyCharacter.CurrentLocation.Name;
+            GameManager.ActiveCharacter.Name, GameManager.ActiveCharacter.Age);
+        LocationText.text = GameManager.ActiveCharacter.CurrentLocation.Name;
         TitleText.text = Company.MyCompany == null
             ? "Freelancer"
             : string.Format("Founder of {0}", Company.MyCompany.Name);
-        SkillPRGText.text = Character.MyCharacter.Skills[Skill.Programming].Level.ToString();
-        SkillUIXText.text = Character.MyCharacter.Skills[Skill.UserInterfaces].Level.ToString();
-        SkillDBSText.text = Character.MyCharacter.Skills[Skill.Databases].Level.ToString();
-        SkillNTWText.text = Character.MyCharacter.Skills[Skill.Networking].Level.ToString();
-        SkillWEBText.text = Character.MyCharacter.Skills[Skill.WebDevelopment].Level.ToString();
-        CharacterAvatar.LoadAvatar(Character.MyCharacter);
+        SkillPRGText.text = GameManager.ActiveCharacter.Skills[Skill.Programming].Level.ToString();
+        SkillUIXText.text = GameManager.ActiveCharacter.Skills[Skill.UserInterfaces].Level.ToString();
+        SkillDBSText.text = GameManager.ActiveCharacter.Skills[Skill.Databases].Level.ToString();
+        SkillNTWText.text = GameManager.ActiveCharacter.Skills[Skill.Networking].Level.ToString();
+        SkillWEBText.text = GameManager.ActiveCharacter.Skills[Skill.WebDevelopment].Level.ToString();
+        CharacterAvatar.LoadAvatar(GameManager.ActiveCharacter);
 
         SDTUIController.Instance.OpenCanvas(CharacterInformationPanel, false, false);
     }

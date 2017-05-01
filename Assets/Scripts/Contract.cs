@@ -90,13 +90,13 @@ public class Contract
     {
         if (contract != null)
         {
-            Character.MyCharacter.ActiveContract = contract;
+            GameManager.ActiveCharacter.ActiveContract = contract;
             InformationPanelManager.Instance.ShowActiveContract();
             InformationPanelManager.Instance.UpdateActiveContract();
         }
         else
         {
-            Character.MyCharacter.ActiveContract = null;
+            GameManager.ActiveCharacter.ActiveContract = null;
             InformationPanelManager.Instance.HideActiveContract();
         }
     }
@@ -119,8 +119,8 @@ public class Contract
     {
         if (Company.MyCompany == null)
         {
-            Character.MyCharacter.Funds += Payment;
-            Character.MyCharacter.Reputation += ReputationReward;
+            GameManager.ActiveCharacter.Funds += Payment;
+            GameManager.ActiveCharacter.Reputation += ReputationReward;
         }
         else
         {
@@ -134,7 +134,7 @@ public class Contract
     public void CancelContract()
     {
         if(Company.MyCompany == null)
-            Character.MyCharacter.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
+            GameManager.ActiveCharacter.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         else
             Company.MyCompany.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         InformationPanelManager.Instance.DisplayMessage("Failed contract: " + Name, 1.0f);
@@ -144,13 +144,13 @@ public class Contract
     public static Contract[] GenerateContracts(int contracts)
     {
         int team_size = Company.MyCompany == null ? 1 : Company.MyCompany.TeamSize;
-        //int reputation = Company.MyCompany == null ? Character.MyCharacter.Reputation : Company.MyCompany.Reputation;
+        //int reputation = Company.MyCompany == null ? GameManager.ActiveCharacter.Reputation : Company.MyCompany.Reputation;
         //reputation = Mathf.Clamp(reputation, 0, 100);
         int reputation = 100;
 
         Contract[] generated_contracts = new Contract[contracts];
 
-        int char_name_val = Character.MyCharacter.Name.Aggregate(0, (current, c) => current + c);
+        int char_name_val = GameManager.ActiveCharacter.Name.Aggregate(0, (current, c) => current + c);
 
         Random.InitState(TimeManager.Week * TimeManager.Year * (char_name_val + 1));
 

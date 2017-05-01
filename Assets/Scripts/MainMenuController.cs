@@ -237,6 +237,8 @@ public class MainMenuController : Singleton<MainMenuController>
 
         new_character.SetupEvents();
 
+        GameManager.ActiveCharacter = new_character;
+
         CanvasGroup mm_canvas = SDTUIController.Instance.MainMenuCanvas.GetComponent<CanvasGroup>();
         CanvasGroup ig_canvas = SDTUIController.Instance.InGameCanvas.GetComponent<CanvasGroup>();
         mm_canvas.alpha = 0; mm_canvas.interactable = false; mm_canvas.blocksRaycasts = false;
@@ -303,6 +305,11 @@ public class MainMenuController : Singleton<MainMenuController>
         #else
         Application.Quit();
         #endif
+    }
+
+    public void ToggleGlitchEffect(bool enable)
+    {
+        Camera.main.GetComponent<Kino.AnalogGlitch>().enabled = enable;
     }
 
     private void LoadSave(GameSave save)

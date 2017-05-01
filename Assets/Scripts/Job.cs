@@ -107,7 +107,7 @@ public class JobApplication
         if (Random.Range(0.0f, 1.0f) >= chance_for_reply) return;
 
         int base_accept_chance = 75 + AppliedJob.CurrentTitle.SkillRequirements.Skills
-            .Sum(skill => Character.MyCharacter.Skills[skill.Skill].Level - skill.Level);
+            .Sum(skill => GameManager.ActiveCharacter.Skills[skill.Skill].Level - skill.Level);
 
         Accepted = Random.Range(0, 101) < base_accept_chance;
 
@@ -160,12 +160,12 @@ public class Job
         HireDateBinary = TimeManager.CurrentDate.ToBinary();
         isPayWeek = false;
 
-        Character.MyCharacter.Funds += SigningBonus;
+        GameManager.ActiveCharacter.Funds += SigningBonus;
 
-        if (JobLocation != Character.MyCharacter.CurrentLocation)
+        if (JobLocation != GameManager.ActiveCharacter.CurrentLocation)
         {
-            Character.MyCharacter.Funds += 5000;
-            Character.MyCharacter.CurrentLocation = JobLocation;
+            GameManager.ActiveCharacter.Funds += 5000;
+            GameManager.ActiveCharacter.CurrentLocation = JobLocation;
         }
 
         Performance = 80;
@@ -204,7 +204,7 @@ public class Job
 
         if (!isPayWeek) return;
 
-        Character.MyCharacter.Funds += Mathf.CeilToInt(Salary / 26.0f);
+        GameManager.ActiveCharacter.Funds += Mathf.CeilToInt(Salary / 26.0f);
 
         InformationPanelManager.Instance.DisplayMessage("Payday!", 1.0f);
     }
@@ -216,7 +216,7 @@ public class Job
 
     public void Promote()
     {
-        if (CurrentTitle.GetNextLevel() != null && CurrentTitle.GetNextLevel().MeetsRequirements(Character.MyCharacter))
+        if (CurrentTitle.GetNextLevel() != null && CurrentTitle.GetNextLevel().MeetsRequirements(GameManager.ActiveCharacter))
             CurrentTitle = CurrentTitle.GetNextLevel();
         GiveRaise(0.2f);
 
@@ -231,7 +231,7 @@ public class Job
         TimeSpan job_length = TimeManager.CurrentDate - DateTime.FromBinary(HireDateBinary);
         int total_sev_pay = BASE_SEVERANCE_PAY + Mathf.CeilToInt((job_length.Days / 365.0f) * (Salary / 12.0f));
 
-        Character.MyCharacter.Funds += total_sev_pay;
+        GameManager.ActiveCharacter.Funds += total_sev_pay;
 
         InformationPanelManager.Instance.DisplayMessage(
             string.Format("You've been fired from {0}!", CompanyName), 2.0f);
@@ -241,7 +241,7 @@ public class Job
     {
         var jobs = new List<Job>();
 
-        int char_name_val = Character.MyCharacter.Name.Aggregate(0, (current, c) => current + c);
+        int char_name_val = GameManager.ActiveCharacter.Name.Aggregate(0, (current, c) => current + c);
         Random.InitState(TimeManager.Month * TimeManager.Year * (char_name_val + 1));
 
         for (int i = 0; i < count; i++)

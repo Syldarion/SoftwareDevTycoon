@@ -40,13 +40,6 @@ public class JobManager : Singleton<JobManager>
     {
         Instance = this;
 
-        SkillRequirementFilters = new int[SkillInfo.COUNT];
-        for (int i = 0; i < 5; i++)
-        {
-            SkillRequirementFilters[i] = Character.MyCharacter.Skills[i].Level;
-            SkillRequirementFilterTexts[i].text = SkillRequirementFilters[i].ToString();
-        }
-
         ActiveApplications = new List<JobApplication>();
     }
 
@@ -81,7 +74,14 @@ public class JobManager : Singleton<JobManager>
     public void OpenJobSearch()
     {
         if (Job.MyJob != null) return;
-        
+
+        SkillRequirementFilters = new int[SkillInfo.COUNT];
+        for (int i = 0; i < 5; i++)
+        {
+            SkillRequirementFilters[i] = GameManager.ActiveCharacter.Skills[i].Level;
+            SkillRequirementFilterTexts[i].text = SkillRequirementFilters[i].ToString();
+        }
+
         SDTUIController.Instance.OpenCanvas(JobSearchPanel);
         
         RefreshApplicationList();

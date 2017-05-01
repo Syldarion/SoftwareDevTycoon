@@ -68,15 +68,15 @@ public class Company
 
         var init_office = new Office(initSpace)
         {
-            OfficeLocation = Character.MyCharacter.CurrentLocation
+            OfficeLocation = GameManager.ActiveCharacter.CurrentLocation
         };
         new_company.AddOffice(init_office);
 
         int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * init_office.Space);
 
-        if(Character.MyCharacter.ActiveContract != null)
+        if(GameManager.ActiveCharacter.ActiveContract != null)
         {
-            Contract temp = Character.MyCharacter.ActiveContract;
+            Contract temp = GameManager.ActiveCharacter.ActiveContract;
             Contract.SetPlayerActiveContract(null);
             Contract.SetCompanyActiveContract(temp);
         }
@@ -84,8 +84,8 @@ public class Company
         if(Job.MyJob != null)
             Job.MyJob.FirePlayer();
         
-        int temp_funds = Character.MyCharacter.Funds - new_company_cost;
-        Character.MyCharacter.Funds = 0;
+        int temp_funds = GameManager.ActiveCharacter.Funds - new_company_cost;
+        GameManager.ActiveCharacter.Funds = 0;
         new_company.Funds = temp_funds;
         
         return new_company;

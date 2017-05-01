@@ -504,10 +504,10 @@ public class CompanyManager : Singleton<CompanyManager>
         NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
         
         CreateCompanyButton.onClick.RemoveListener(CreateCompany);
-        if(total_cost <= Character.MyCharacter.Funds && total_cost != 0)
+        if(total_cost <= GameManager.ActiveCharacter.Funds && total_cost != 0)
             CreateCompanyButton.onClick.AddListener(CreateCompany);
         CreateCompanyButton.colors =
-            ColorBlocks.GetColorBlock(total_cost <= Character.MyCharacter.Funds ? Color.green : Color.red);
+            ColorBlocks.GetColorBlock(total_cost <= GameManager.ActiveCharacter.Funds ? Color.green : Color.red);
     }
 
     public void CreateCompany()

@@ -42,8 +42,8 @@ public class GameSave
 
     private void LoadCharacterInfo()
     {
-        Character.MyCharacter = myCharacter;
-        Character.MyCharacter.SetupEvents();
+        GameManager.ActiveCharacter = myCharacter;
+        GameManager.ActiveCharacter.SetupEvents();
     }
 
     private void LoadTimeInfo()
@@ -84,7 +84,7 @@ public class GameSave
 
     public void SaveGame()
     {
-        myCharacter = Character.MyCharacter;
+        myCharacter = GameManager.ActiveCharacter;
         dateString = TimeManager.DateString;
         activeApplications = JobManager.Instance.ActiveApplications.ToArray();
         myJob = Job.MyJob;

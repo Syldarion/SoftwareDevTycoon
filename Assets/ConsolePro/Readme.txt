@@ -1,4 +1,4 @@
-Version 3.5
+Version 3.7
 
 Editor Console Pro is a powerful replacement for Unity's editor console.
 

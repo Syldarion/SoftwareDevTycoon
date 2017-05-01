@@ -34,7 +34,7 @@ public class InformationPanelManager : Singleton<InformationPanelManager>
     public void UpdateActiveContract()
     {
         Contract active_contract = Company.MyCompany == null 
-            ? Character.MyCharacter.ActiveContract
+            ? GameManager.ActiveCharacter.ActiveContract
             : Company.MyCompany.ActiveContract;
         if (active_contract == null)
         {

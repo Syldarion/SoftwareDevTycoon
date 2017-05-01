@@ -7,7 +7,7 @@ namespace FlyingWormConsole3
 {
 public class ConsoleProRemoteServer : MonoBehaviour
 {
-	#if !NETFX_CORE && !UNITY_WEBPLAYER && !UNITY_WP8 && !UNITY_METRO
+	#if !NETFX_CORE && !UNITY_WEBPLAYER && !UNITY_WP8 && !UNITY_METRO && !UNITY_WEBGL
 	public class HTTPContext
 	{
 		public HttpListenerContext context;
@@ -68,7 +68,9 @@ public class ConsoleProRemoteServer : MonoBehaviour
 
 	public int port = 51000;
 
-	private static HttpListener listener = new HttpListener();
+	private bool _started;
+
+	private static HttpListener listener = null;
 	
 	[NonSerializedAttribute]
 	public List<QueuedLog> logs = new List<QueuedLog>();
@@ -86,16 +88,43 @@ public class ConsoleProRemoteServer : MonoBehaviour
 		
 		DontDestroyOnLoad(gameObject);
 
+		StartServer();
+	}
+
+	void StartServer()
+	{
+		if(_started)
+		{
+			return;
+		}
+		
 		Debug.Log("Starting Console Pro Server on port : " + port);
+
+		_started = true;
+		listener = new HttpListener();
 		listener.Prefixes.Add("http://*:"+port+"/");
 		listener.Start();
 		listener.BeginGetContext(ListenerCallback, null);
+	}
+
+	void StopServer()
+	{
+		if(!_started)
+		{
+			return;
+		}
+		
+		Debug.Log("Stopping Console Pro Server on port : " + port);
+		
+		_started = false;
+		listener.Close();
 	}
 
 	#if UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7 || UNITY_4_8 || UNITY_4_9
 
 	void OnEnable()
 	{
+		StartServer();
 		Application.RegisterLogCallback(LogCallback);
 	}
 
@@ -112,18 +141,21 @@ public class ConsoleProRemoteServer : MonoBehaviour
 	void OnDisable()
 	{
 		Application.RegisterLogCallback(null);
+		StopServer();
 	}
 
 	#else
 
 	void OnEnable()
 	{
+		StartServer();
 		Application.logMessageReceived += LogCallback;
 	}
 
 	void OnDisable()
 	{
 		Application.logMessageReceived -= LogCallback;
+		StopServer();
 	}
 
 	#endif
@@ -169,7 +201,7 @@ public class ConsoleProRemoteServer : MonoBehaviour
 
 					//  foreach(QueuedLog cLog in logs)
 					for(int i = 0; i < logs.Count; i++)
-					{					
+					{
 						QueuedLog cLog = logs[i];
 						response += "::::" + cLog.type;
 						response += "||||" + cLog.message;

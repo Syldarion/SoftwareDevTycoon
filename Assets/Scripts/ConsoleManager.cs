@@ -15,7 +15,7 @@ public class ConsoleCommand
         {
             int value = Convert.ToInt32(x[0]);
             if(Company.MyCompany == null)
-                Character.MyCharacter.Funds = value;
+                GameManager.ActiveCharacter.Funds = value;
             else
                 Company.MyCompany.Funds = value;
         }),
@@ -23,7 +23,7 @@ public class ConsoleCommand
         {
             int value = Convert.ToInt32(x[0]);
             if(Company.MyCompany == null)
-                Character.MyCharacter.Reputation = value;
+                GameManager.ActiveCharacter.Reputation = value;
             else
                 Company.MyCompany.Reputation = value;
         }),
@@ -31,7 +31,7 @@ public class ConsoleCommand
         {
             int skill = Convert.ToInt32(x[0]);
             int value = Convert.ToInt32(x[1]);
-            Character.MyCharacter.Skills[skill].Level = value;
+            GameManager.ActiveCharacter.Skills[skill].Level = value;
         })
     };
 

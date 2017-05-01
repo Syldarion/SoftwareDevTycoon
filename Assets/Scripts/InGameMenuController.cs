@@ -79,9 +79,10 @@ public class InGameMenuController : MonoBehaviour
 
     public void ExitGame()
     {
-        CanvasGroup mm_canvas = SDTUIController.Instance.InGameCanvas.GetComponent<CanvasGroup>();
-        CanvasGroup ig_canvas = SDTUIController.Instance.MainMenuCanvas.GetComponent<CanvasGroup>();
-        mm_canvas.alpha = 0; mm_canvas.interactable = false; mm_canvas.blocksRaycasts = false;
-        ig_canvas.alpha = 1; ig_canvas.interactable = true; ig_canvas.blocksRaycasts = true;
+        GameManager.Instance.ResetScene();
+        //CanvasGroup mm_canvas = SDTUIController.Instance.InGameCanvas.GetComponent<CanvasGroup>();
+        //CanvasGroup ig_canvas = SDTUIController.Instance.MainMenuCanvas.GetComponent<CanvasGroup>();
+        //mm_canvas.alpha = 0; mm_canvas.interactable = false; mm_canvas.blocksRaycasts = false;
+        //ig_canvas.alpha = 1; ig_canvas.interactable = true; ig_canvas.blocksRaycasts = true;
     }
 }
