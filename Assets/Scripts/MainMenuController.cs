@@ -45,6 +45,7 @@ public class MainMenuController : Singleton<MainMenuController>
     public InputField CharacterBirthdayDayInput;
     public InputField CharacterBirthdayMonthInput;
     public InputField CharacterBirthdayYearInput;
+    public InputField CompanyNameInput;
     public Text CharacterLocationText;
 
     [Header("New Game Skills UI")]
@@ -231,18 +232,14 @@ public class MainMenuController : Singleton<MainMenuController>
         new_character.Skills[Skill.Databases].Level = DatabasesSkillAllocator.CurrentSkillLevel;
         new_character.Skills[Skill.Networking].Level = NetworkingSkillAllocator.CurrentSkillLevel;
         new_character.Skills[Skill.WebDevelopment].Level = WebDevelopmentSkillAllocator.CurrentSkillLevel;
-
-        new_character.Funds = 5000;
-        new_character.Reputation = 50;
-
+        
         new_character.SetupEvents();
 
         GameManager.ActiveCharacter = new_character;
 
-        DialogueManager.Instance.CreateMessageDialogue(
-            string.Format(
-                DialogueMessage.WelcomeMessage, 
-                new_character.Name));
+        Company.MyCompany = Company.CreateNewCompany(CompanyNameInput.text);
+
+        TutorialManager.Instance.BeginTutorial();
 
         CanvasGroup mm_canvas = SDTUIController.Instance.MainMenuCanvas.GetComponent<CanvasGroup>();
         CanvasGroup ig_canvas = SDTUIController.Instance.InGameCanvas.GetComponent<CanvasGroup>();

@@ -93,7 +93,7 @@ public class SkillList
                     ? SkillInfo.SKILL_ABBR[(int)x.Skill]
                     : SkillInfo.SKILL_NAME[(int)x.Skill]);
                 int spaces = lineLength - 2 - SkillInfo.SKILL_NAME[(int)x.Skill].Length;
-                skill_builder.Append('.', spaces);
+                skill_builder.Append(' ', spaces);
                 skill_builder.Append(x.Level);
                 return skill_builder.ToString();
             }).ToArray());

@@ -13,10 +13,6 @@ public class GameSave
     [SerializeField]
     private string dateString;
     [SerializeField]
-    private JobApplication[] activeApplications;
-    [SerializeField]
-    private Job myJob;
-    [SerializeField]
     private Company myCompany;
 
     public GameSave(string name, DateTime lastModDate)
@@ -36,7 +32,6 @@ public class GameSave
     {
         LoadCharacterInfo();
         LoadTimeInfo();
-        LoadJobInfo();
         LoadCompanyInfo();
     }
 
@@ -60,18 +55,6 @@ public class GameSave
         }
     }
 
-    private void LoadJobInfo()
-    {
-        foreach (JobApplication app in activeApplications)
-            JobManager.Instance.ActiveApplications.Add(app);
-
-        if (myJob != null)
-        {
-            Job.MyJob = myJob;
-            Job.MyJob.SetupEvents();
-        }
-    }
-
     private void LoadCompanyInfo()
     {
         if (myCompany != null)
@@ -86,8 +69,6 @@ public class GameSave
     {
         myCharacter = GameManager.ActiveCharacter;
         dateString = TimeManager.DateString;
-        activeApplications = JobManager.Instance.ActiveApplications.ToArray();
-        myJob = Job.MyJob;
         myCompany = Company.MyCompany;
     }
 }

@@ -23,7 +23,7 @@ public class Project
         "Retired"
     };
 
-    public const int VALUE_PER_QUALITY_LEVEL = 50;
+    public const int VALUE_PER_QUALITY_LEVEL = 20;
     public const int PROJECT_SELL_MONTHS = 12;
 
     public int CurrentPayout { get; private set; }
@@ -64,6 +64,7 @@ public class Project
     public void Payout()
     {
         Company.MyCompany.Funds += payoutPerMonth;
+        ReportManager.Instance.ProjectEarnings += payoutPerMonth;
         CurrentPayout += payoutPerMonth;
         if (CurrentPayout >= totalPayout)
         {

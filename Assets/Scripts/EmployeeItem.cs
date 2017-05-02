@@ -10,7 +10,7 @@ public class EmployeeItem : MonoBehaviour, IPointerDownHandler
 {
     public Employee ItemEmployee;
     public Text NameAgeText;
-    public Text TitleText;
+    public Text SkillsText;
 
     void Start() {}
 
@@ -28,6 +28,6 @@ public class EmployeeItem : MonoBehaviour, IPointerDownHandler
             "{0} ({1})",
             employee.Name,
             employee.Age);
-        TitleText.text = employee.CurrentTitle.Name;
+        SkillsText.text = employee.Skills.Info("|", true);
     }
 }

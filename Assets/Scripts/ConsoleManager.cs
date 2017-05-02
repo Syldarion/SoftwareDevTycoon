@@ -14,18 +14,12 @@ public class ConsoleCommand
         new ConsoleCommand("setmoney", "usage: setmoney {value}", "Sucessfully set money!", 1, x =>
         {
             int value = Convert.ToInt32(x[0]);
-            if(Company.MyCompany == null)
-                GameManager.ActiveCharacter.Funds = value;
-            else
-                Company.MyCompany.Funds = value;
+            Company.MyCompany.Funds = value;
         }),
         new ConsoleCommand("setrep", "usage: setrep {value}", "Successfully set reputation!", 1, x =>
         {
             int value = Convert.ToInt32(x[0]);
-            if(Company.MyCompany == null)
-                GameManager.ActiveCharacter.Reputation = value;
-            else
-                Company.MyCompany.Reputation = value;
+            Company.MyCompany.Reputation = value;
         }),
         new ConsoleCommand("setskill", "usage: setskil {skill} {value}", "Successfully set skill!", 2, x =>
         {

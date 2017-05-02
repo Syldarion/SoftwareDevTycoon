@@ -17,8 +17,7 @@ public class Employee : Person
             return Mathf.CeilToInt((Salary / 12.0f));
         }
     }
-
-    public JobTitle CurrentTitle;
+    
     public int HireCost;
     public int Salary;
     public long HireDateBinary;
@@ -55,13 +54,6 @@ public class Employee : Person
         Morale += percentage * 0.5f;
     }
 
-    public void Promote()
-    {
-        if (CurrentTitle.GetNextLevel() != null && CurrentTitle.GetNextLevel().MeetsRequirements(this))
-            CurrentTitle = CurrentTitle.GetNextLevel();
-        GiveRaise(0.2f);
-    }
-
     public SkillList Work()
     {
         SkillList to_return = Skills;
@@ -87,19 +79,23 @@ public class Employee : Person
 
     public static Employee GenerateEmployee()
     {
-        var title = JobTitle.GetRandomTitle();
         var new_employee = new Employee();
 
-        new_employee.CurrentTitle = title;
-        new_employee.Salary = Mathf.CeilToInt(title.SkillRequirements.Sum() * salary_skill_factor)
-                           * Random.Range(50, 60) * 1000;
-        new_employee.HireCost = Mathf.CeilToInt(Random.Range(0.05f, 1.0f) * new_employee.Salary);
+        int emp_level = Random.Range(1, 4); //1 - junior, 2 - mid-level, 3 - senior
+
+        new_employee.Skills = new SkillList();
+        for (int i = 0; i < SkillInfo.COUNT; i++)
+            new_employee.Skills[(Skill)i] = new SkillLevel((Skill)i, (3 + Random.Range(1, 5)) * emp_level);
+
+        int number_of_focuses = Random.Range(1, 3); //skills that are higher than the rest
+        for (int i = 0; i < number_of_focuses; i++)
+            new_employee.Skills[(Skill)Random.Range(0, SkillInfo.COUNT)] += Random.Range(1, 5) * emp_level;
+
+        new_employee.Salary = Mathf.CeilToInt(new_employee.Skills.Sum() * salary_skill_factor) * Random.Range(50, 60) * 100;
+        new_employee.HireCost = Mathf.CeilToInt(Random.Range(0.05f, 0.1f) * new_employee.Salary);
         new_employee.Name = PersonNames.GetRandomName();
         new_employee.Age = Random.Range(18, 50);
         new_employee.CurrentLocation = Location.GetRandomLocation();
-        new_employee.Skills = new SkillList();
-        for (int i = 0; i < SkillInfo.COUNT; i++)
-            new_employee.Skills[(Skill)i] = title.SkillRequirements[(Skill)i] + Random.Range(2, 5);
         new_employee.Morale = 50.0f;
 
         return new_employee;

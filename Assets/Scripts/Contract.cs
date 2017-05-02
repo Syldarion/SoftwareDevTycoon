@@ -58,11 +58,16 @@ public class Contract
 
     public void AcceptContract()
     {
-        if(Company.MyCompany == null)
-            SetPlayerActiveContract(this);
-        else 
-            SetCompanyActiveContract(this);
+        SetCompanyActiveContract(this);
 
+        if (!TutorialManager.Instance.FirstContractStartedMessageFired)
+        {
+            DialogueManager.Instance.CreateMessageDialogue(
+                DialogueMessage.FirstContractStarted,
+                new Vector3(100.0f, 200.0f),
+                () => { });
+            TutorialManager.Instance.FirstContractStartedMessageFired = true;
+        }
     }
 
     public bool ApplyWork(SkillList work)
@@ -86,26 +91,11 @@ public class Contract
         return false;
     }
 
-    public static void SetPlayerActiveContract(Contract contract)
-    {
-        if (contract != null)
-        {
-            GameManager.ActiveCharacter.ActiveContract = contract;
-            InformationPanelManager.Instance.ShowActiveContract();
-            InformationPanelManager.Instance.UpdateActiveContract();
-        }
-        else
-        {
-            GameManager.ActiveCharacter.ActiveContract = null;
-            InformationPanelManager.Instance.HideActiveContract();
-        }
-    }
-
     public static void SetCompanyActiveContract(Contract contract)
     {
+        Company.MyCompany.ActiveContract = contract;
         if(contract != null)
         {
-            Company.MyCompany.ActiveContract = contract;
             InformationPanelManager.Instance.ShowActiveContract();
             InformationPanelManager.Instance.UpdateActiveContract();
         }
@@ -117,36 +107,33 @@ public class Contract
 
     public void CompleteContract()
     {
-        if (Company.MyCompany == null)
-        {
-            GameManager.ActiveCharacter.Funds += Payment;
-            GameManager.ActiveCharacter.Reputation += ReputationReward;
-        }
-        else
-        {
-            Company.MyCompany.Funds += Payment;
-            Company.MyCompany.Reputation += ReputationReward;
-        }
+        Company.MyCompany.Funds += Payment;
+        Company.MyCompany.Reputation += ReputationReward;
+        ReportManager.Instance.ContractEarnings += Payment;
 
         InformationPanelManager.Instance.DisplayMessage("Completed contract: " + Name, 1.0f);
+
+        if (!TutorialManager.Instance.FirstContractFinishedMessageFired)
+        {
+            DialogueManager.Instance.CreateMessageDialogue(
+                DialogueMessage.FirstContractCompleted,
+                new Vector3(100.0f, 200.0f),
+                () => { });
+            TutorialManager.Instance.FirstContractFinishedMessageFired = true;
+        }
     }
 
     public void CancelContract()
     {
-        if(Company.MyCompany == null)
-            GameManager.ActiveCharacter.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
-        else
-            Company.MyCompany.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
+        Company.MyCompany.Reputation -= Mathf.FloorToInt((float)ReputationReward / 2);
         InformationPanelManager.Instance.DisplayMessage("Failed contract: " + Name, 1.0f);
-        SetPlayerActiveContract(null);
+        SetCompanyActiveContract(null);
     }
 
     public static Contract[] GenerateContracts(int contracts)
     {
-        int team_size = Company.MyCompany == null ? 1 : Company.MyCompany.TeamSize;
-        //int reputation = Company.MyCompany == null ? GameManager.ActiveCharacter.Reputation : Company.MyCompany.Reputation;
-        //reputation = Mathf.Clamp(reputation, 0, 100);
-        int reputation = 100;
+        int team_size = 1 + Company.MyCompany.TeamSize;
+        int reputation = Company.MyCompany.Reputation;
 
         Contract[] generated_contracts = new Contract[contracts];
 
@@ -176,7 +163,6 @@ public class Contract
             int payout = Mathf.CeilToInt(skills_needed.Sum(x => x.Level) * 8 * Random.Range(0.8f, 1.2f));
             if (reputation < 10) payout = Mathf.CeilToInt(payout * 0.5f);
             if (reputation > 90) payout = Mathf.CeilToInt(payout * 2.0f);
-            payout = 10 * ((payout + 9) / 10);
 
             generated_contracts[i] = new Contract(
                 template.ContractName,

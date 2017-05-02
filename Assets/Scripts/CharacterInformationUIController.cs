@@ -10,7 +10,6 @@ public class CharacterInformationUIController : MonoBehaviour
     public CanvasGroup CharacterInformationPanel;
     public Text NameAgeText;
     public Text LocationText;
-    public Text TitleText;
     public Text SkillPRGText;
     public Text SkillUIXText;
     public Text SkillDBSText;
@@ -34,9 +33,6 @@ public class CharacterInformationUIController : MonoBehaviour
         NameAgeText.text = string.Format("{0} ({1})",
             GameManager.ActiveCharacter.Name, GameManager.ActiveCharacter.Age);
         LocationText.text = GameManager.ActiveCharacter.CurrentLocation.Name;
-        TitleText.text = Company.MyCompany == null
-            ? "Freelancer"
-            : string.Format("Founder of {0}", Company.MyCompany.Name);
         SkillPRGText.text = GameManager.ActiveCharacter.Skills[Skill.Programming].Level.ToString();
         SkillUIXText.text = GameManager.ActiveCharacter.Skills[Skill.UserInterfaces].Level.ToString();
         SkillDBSText.text = GameManager.ActiveCharacter.Skills[Skill.Databases].Level.ToString();

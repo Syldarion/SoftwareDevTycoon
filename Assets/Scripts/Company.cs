@@ -11,6 +11,8 @@ public class Company
 {
     public static Company MyCompany;
 
+    public const int NEW_COMPANY_SEED = 10000;
+    public const int NEW_COMPANY_SIZE = 500;
     public const int BASE_COMPANY_COST = 100000;
     public const int BASE_SEVERANCE_PAY = 20000;
     public const int TRAINING_COST_MULTIPLIER = 500;
@@ -60,33 +62,19 @@ public class Company
         SetupEvents();
     }
 
-    public static Company CreateNewCompany(string name, int initSpace)
+    public static Company CreateNewCompany(string name)
     {
         if (MyCompany != null) return MyCompany;
 
         var new_company = new Company(name);
 
-        var init_office = new Office(initSpace)
+        var init_office = new Office(NEW_COMPANY_SIZE)
         {
             OfficeLocation = GameManager.ActiveCharacter.CurrentLocation
         };
         new_company.AddOffice(init_office);
-
-        int new_company_cost = BASE_COMPANY_COST + (Office.COST_PER_SPACE * init_office.Space);
-
-        if(GameManager.ActiveCharacter.ActiveContract != null)
-        {
-            Contract temp = GameManager.ActiveCharacter.ActiveContract;
-            Contract.SetPlayerActiveContract(null);
-            Contract.SetCompanyActiveContract(temp);
-        }
-
-        if(Job.MyJob != null)
-            Job.MyJob.FirePlayer();
         
-        int temp_funds = GameManager.ActiveCharacter.Funds - new_company_cost;
-        GameManager.ActiveCharacter.Funds = 0;
-        new_company.Funds = temp_funds;
+        new_company.Funds = NEW_COMPANY_SEED;
         
         return new_company;
     }
@@ -128,6 +116,9 @@ public class Company
     {
         int total_payroll = employees.Aggregate(0, (current, emp) => current + emp.Pay);
         Funds -= total_payroll;
+
+        ReportManager.Instance.SalarySpending += total_payroll;
+
         Reputation++;
     }
 
@@ -135,6 +126,8 @@ public class Company
     {
         int total_cost = CompanyOffices.Aggregate(0, (current, office) => current + office.TotalUpkeepCost);
         Funds -= total_cost;
+
+        ReportManager.Instance.OfficeUpkeepSpending += total_cost;
     }
 
     public void HireEmployee(Employee employee)
@@ -144,6 +137,8 @@ public class Company
         
         Funds -= employee.HireCost;
         employee.HireDateBinary = TimeManager.CurrentDate.ToBinary();
+
+        ReportManager.Instance.NewHireSpending += employee.HireCost;
 
         employees.Add(employee);
 
@@ -195,6 +190,7 @@ public class Company
         if (ActiveContract == null) return;
 
         var work_sums = new SkillList();
+        work_sums += GameManager.ActiveCharacter.Skills;
         foreach (Office office in CompanyOffices)
         {
             var office_work_sum = new SkillList();
@@ -213,6 +209,7 @@ public class Company
         if (ActiveCompanyProject == null) return;
 
         var work_sums = new SkillList();
+        work_sums += GameManager.ActiveCharacter.Skills;
         foreach (Office office in CompanyOffices)
         {
             var office_work_sum = new SkillList();
@@ -227,15 +224,15 @@ public class Company
 
     public void SetActiveProject(Project project)
     {
-        if (project == null || 
-            (project.CurrentStatus == Project.Status.InProgress || 
+        if (project != null && (project.CurrentStatus == Project.Status.InProgress || 
             project.CurrentStatus == Project.Status.Halted)) return;
 
         if (ActiveCompanyProject != null)
             ActiveCompanyProject.CurrentStatus = Project.Status.Halted;
 
         ActiveCompanyProject = project;
-        ActiveCompanyProject.CurrentStatus = Project.Status.InProgress;
+        if (project != null)
+            ActiveCompanyProject.CurrentStatus = Project.Status.InProgress;
     }
 
     public void CheckEmployeeMorale()

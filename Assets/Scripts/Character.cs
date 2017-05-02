@@ -92,29 +92,8 @@ public class Person
 [Serializable]
 public class Character : Person
 {
-    public int Funds
-    {
-        get { return funds; }
-        set
-        {
-            funds = Mathf.Clamp(value, -int.MaxValue, int.MaxValue);
-            StatusBarManager.Instance.UpdateFunds(funds);
-        }
-    }
-    public int Reputation
-    {
-        get { return reputation; }
-        set { reputation = Mathf.Clamp(value, 0, 100); }
-    }
-
-    public Contract ActiveContract;
     public string Birthday;
-
-    [SerializeField]
-    private int funds;
-    [SerializeField]
-    private int reputation;
-
+    
     public Character()
     {
     }
@@ -122,22 +101,8 @@ public class Character : Person
     public void SetupEvents()
     {
         TimeManager.PerDayEvent.RemoveListener(CheckBirthday);
-        TimeManager.PerDayEvent.RemoveListener(WorkOnContract);
 
         TimeManager.PerDayEvent.AddListener(CheckBirthday);
-        TimeManager.PerDayEvent.AddListener(WorkOnContract);
-    }
-
-    public void WorkOnContract()
-    {
-        if (ActiveContract == null) return;
-
-        var work = new SkillList();
-        for(int i = 0; i < work.Length; i++)
-            work[i] = Skills[i] + Random.Range(-1, 2);
-        
-        if(ActiveContract.ApplyWork(work))
-            Contract.SetPlayerActiveContract(null);
     }
 
     public void CheckBirthday()

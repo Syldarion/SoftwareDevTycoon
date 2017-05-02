@@ -12,13 +12,6 @@ public class CompanyManager : Singleton<CompanyManager>
     public const int OFFICES_TO_GENERATE = 3;
     public const int COST_PER_MILE_MOVED = 10;
 
-    [Header("New Company UI")]
-    public CanvasGroup NewCompanyPanel;
-    public InputField CompanyNameInput;
-    public InputField FirstOfficeSpaceInput;
-    public Button CreateCompanyButton;
-    public Text NewCompanyCostText;
-
     [Header("Company Info UI")]
     public Text InfoCompanyName;
     public Text InfoOfficeCount;
@@ -138,22 +131,10 @@ public class CompanyManager : Singleton<CompanyManager>
     {
         if(Input.GetKeyDown(KeyCode.Escape))
         {
-            CloseNewCompanyPanel();
             CloseCompanyOfficesPanel();
             CloseCompanyEmployeesPanel();
             CloseCompanyProjectsPanel();
         }
-    }
-
-    public void OpenNewCompanyPanel()
-    {
-        if(Company.MyCompany != null) return;
-        SDTUIController.Instance.OpenCanvas(NewCompanyPanel);
-    }
-
-    public void CloseNewCompanyPanel()
-    {
-        SDTUIController.Instance.CloseCanvas(NewCompanyPanel);
     }
 
     public void OpenCompanyOfficesPanel()
@@ -262,7 +243,8 @@ public class CompanyManager : Singleton<CompanyManager>
     public void RefreshProjectsList()
     {
         foreach (Transform child in ProjectsList)
-            Destroy(child.gameObject);
+            if (child.name != CreateNewProjectButton.name)
+                Destroy(child.gameObject);
         foreach(Project project in Company.MyCompany.CompanyProjects.OrderBy(x => x.CurrentStatus))
         {
             ProjectItem new_project_item = Instantiate(ProjectItemPrefab);
@@ -349,7 +331,6 @@ public class CompanyManager : Singleton<CompanyManager>
 
         EmployeeDetailNameAge.text = string.Format(
             "{0} ({1})", employee.Name, employee.Age);
-        EmployeeDetailTitle.text = employee.CurrentTitle.Name;
 
         EmployeeDetailSkillPRG.text = employee.Skills[Skill.Programming].Level.ToString();
         EmployeeDetailSkillUIX.text = employee.Skills[Skill.UserInterfaces].Level.ToString();
@@ -441,8 +422,8 @@ public class CompanyManager : Singleton<CompanyManager>
         });
         ProjectSellButton.onClick.AddListener(() =>
         {
-            project.CompleteProject();
             Company.MyCompany.SetActiveProject(Company.MyCompany.CompanyProjects.FirstOrDefault(x => x.CurrentStatus == Project.Status.Halted));
+            project.CompleteProject();
             RefreshProjectsList();
             PopulateProjectDetail(project);
         });
@@ -492,30 +473,6 @@ public class CompanyManager : Singleton<CompanyManager>
         ProjectDetailPanel.gameObject.SetActive(true);
     }
 
-    public void UpdateNewCompanyCostText()
-    {
-        int new_office_space;
-        if(!int.TryParse(FirstOfficeSpaceInput.text, out new_office_space)) new_office_space = 0;
-        new_office_space = Mathf.Clamp(Math.Abs(new_office_space), Office.MIN_OFFICE_SPACE, Office.MAX_OFFICE_SPACE);
-        FirstOfficeSpaceInput.text = new_office_space.ToString();
-
-        int total_cost = Company.BASE_COMPANY_COST + (Office.COST_PER_SPACE * new_office_space);
-
-        NewCompanyCostText.text = string.Format("New Company Cost: ${0}", total_cost);
-        
-        CreateCompanyButton.onClick.RemoveListener(CreateCompany);
-        if(total_cost <= GameManager.ActiveCharacter.Funds && total_cost != 0)
-            CreateCompanyButton.onClick.AddListener(CreateCompany);
-        CreateCompanyButton.colors =
-            ColorBlocks.GetColorBlock(total_cost <= GameManager.ActiveCharacter.Funds ? Color.green : Color.red);
-    }
-
-    public void CreateCompany()
-    {
-        Company.MyCompany = Company.CreateNewCompany(CompanyNameInput.text, int.Parse(FirstOfficeSpaceInput.text));
-        CloseNewCompanyPanel();
-    }
-
     public void ConfirmBankruptcy()
     {
         
@@ -528,12 +485,13 @@ public class CompanyManager : Singleton<CompanyManager>
 
         DialogueManager.Instance.CreateYesNoDialogue(
             string.Format("Train {0} for {1:C0}?", employee.Name, training_cost),
+            Vector3.zero,
             () =>
             {
                 Company.MyCompany.TrainEmployee(employee, training_cost);
                 PopulateEmployeeDetail(employee);
             },
-            null);
+            () => { });
     }
 
     public void OnExpandCurrentOfficesClick()

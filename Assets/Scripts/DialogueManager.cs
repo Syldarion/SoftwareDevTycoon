@@ -25,20 +25,24 @@ public class DialogueManager : Singleton<DialogueManager>
 
     }
 
-    public void CreateMessageDialogue(string message)
+    public void CreateMessageDialogue(string message, Vector3 position, UnityAction okAction)
     {
         DialogueBox new_dialogue = Instantiate(MessageDialoguePrefab);
         new_dialogue.transform.SetParent(DialoguePanel, false);
+        new_dialogue.transform.localPosition = position;
 
         new_dialogue.MessageText.text = message;
+
+        new_dialogue.ActionButtons[0].onClick.AddListener(okAction);
 
         new_dialogue.ActionButtons[0].onClick.AddListener(new_dialogue.CloseDialogueBox);
     }
 
-    public void CreateYesNoDialogue(string message, UnityAction yesAction, UnityAction noAction)
+    public void CreateYesNoDialogue(string message, Vector3 position, UnityAction yesAction, UnityAction noAction)
     {
         DialogueBox new_dialogue = Instantiate(YesNoDialoguePrefab);
         new_dialogue.transform.SetParent(DialoguePanel, false);
+        new_dialogue.transform.localPosition = position;
 
         new_dialogue.MessageText.text = message;
 

@@ -45,8 +45,9 @@ public class SaveGameObject : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     {
         DialogueManager.Instance.CreateYesNoDialogue(
             "Are you sure you want to delete this save?",
+            Vector3.zero,
             DeleteGame,
-            null);
+            () => { });
     }
 
     public void DeleteGame()

@@ -74,8 +74,6 @@ public class ContractManager : Singleton<ContractManager>
 
     public void CancelActiveContract()
     {
-        if (GameManager.ActiveCharacter.ActiveContract != null)
-            GameManager.ActiveCharacter.ActiveContract.CancelContract();
         if (Company.MyCompany.ActiveContract != null)
             Company.MyCompany.ActiveContract.CancelContract();
     }
@@ -147,9 +145,7 @@ public class ContractManager : Singleton<ContractManager>
 
     public int GetNegotiationAcceptanceChance(Contract contract, int newPay, int newDays)
     {
-        int reputation = Company.MyCompany == null
-            ? GameManager.ActiveCharacter.Reputation
-            : Company.MyCompany.Reputation;
+        int reputation = Company.MyCompany.Reputation;
 
         float new_pay_percentage = (float)newPay / contract.Payment;
         float new_day_percentage = (float)newDays / contract.DaysToComplete;
@@ -170,7 +166,7 @@ public class ContractManager : Singleton<ContractManager>
     private IEnumerator LockCooldown()
     {
         onCooldown = true;
-        DateTime week_from_now = TimeManager.CurrentDate.AddDays(7.0);
+        DateTime week_from_now = TimeManager.CurrentDate.AddDays(2.0);
         while (TimeManager.CurrentDate < week_from_now)
             yield return null;
         onCooldown = false;

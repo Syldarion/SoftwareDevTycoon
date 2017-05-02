@@ -69,8 +69,6 @@ public class SaveManager : Singleton<SaveManager>
             yield return null;
         while (TimeManager.Instance == null)
             yield return null;
-        while (JobManager.Instance == null)
-            yield return null;
 
         ActiveSave.PopulateGameInfo();
     }

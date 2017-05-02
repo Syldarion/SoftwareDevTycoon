@@ -13,7 +13,7 @@ public class Office
     public const int MIN_OFFICE_SPACE = 100;
     public const int MAX_OFFICE_SPACE = 2000;
     public const int COST_PER_SPACE = 100;
-    public const int BASE_UPKEEP_COST = 2000;
+    public const int BASE_UPKEEP_COST = 500;
 
     //Properties
     public int Space { get { return space; } }
